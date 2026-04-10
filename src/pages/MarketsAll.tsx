@@ -1010,38 +1010,21 @@ function DiscoverSidebar({
 
   return (
     <aside className="w-full space-y-5 lg:sticky lg:top-28 lg:w-80">
-      {/* Kalshi-style promo strip */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 p-4 text-white shadow-lg ring-1 ring-emerald-500/25">
-        <div
-          className="pointer-events-none absolute -right-6 -top-6 size-28 rounded-full bg-emerald-400/15 blur-2xl"
-          aria-hidden
-        />
-        <p className="relative text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-200/80">
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           Crypto thresholds
         </p>
-        <h2 className="relative mt-2 text-lg font-bold leading-tight tracking-tight">Up or Down</h2>
-        <p className="relative mt-1 text-xs leading-relaxed text-emerald-100/75">
+        <h2 className="mt-2 text-lg font-bold leading-tight tracking-tight text-foreground">Up or Down</h2>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           Short intraday markets on Solana
         </p>
-        <div className="relative mt-4 flex justify-center">
-          <div className="flex gap-1 rounded-full bg-emerald-500/20 px-3 py-2 ring-1 ring-emerald-400/20">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <span
-                key={i}
-                className="size-2 rounded-full bg-emerald-400/90 shadow-[0_0_12px_rgba(52,211,153,0.7)]"
-                style={{ opacity: 0.35 + i * 0.13 }}
-                aria-hidden
-              />
-            ))}
-          </div>
-        </div>
         <button
           type="button"
           onClick={onOpenUpDown}
-          className="relative mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-50"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90"
         >
           Trade now
-          <ChevronRight className="size-4 opacity-70" aria-hidden />
+          <ChevronRight className="size-4 opacity-80" aria-hidden />
         </button>
       </div>
 
@@ -1050,7 +1033,7 @@ function DiscoverSidebar({
         <div className="flex items-center justify-between border-b border-border/70 px-3 py-2.5">
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-semibold text-foreground">Trending</span>
-            <TrendingUp className="size-3.5 text-emerald-500" aria-hidden />
+            <TrendingUp className="size-3.5 text-primary" aria-hidden />
           </div>
           <ChevronRight className="size-4 text-muted-foreground/60" aria-hidden />
         </div>
@@ -1079,7 +1062,7 @@ function DiscoverSidebar({
                     <div
                       className={cn(
                         "mt-0.5 flex items-center justify-end gap-0.5 text-[11px] font-semibold tabular-nums",
-                        trendUp ? "text-emerald-500" : "text-rose-500",
+                        trendUp ? "text-up" : "text-down",
                       )}
                     >
                       <span aria-hidden>{trendUp ? "▲" : "▼"}</span>

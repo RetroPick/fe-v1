@@ -43,17 +43,17 @@ const MarketCard = memo(({ market, navigationState, href }: MarketCardProps) => 
     <>
       <div
         onClick={handleCardClick}
-        className="group relative flex flex-col w-full aspect-[4/3] md:aspect-square bg-card dark:bg-card/60 backdrop-blur-md rounded-3xl border border-black/10 dark:border-white/5 overflow-hidden isolate shadow-sm shadow-black/10 dark:shadow-none hover:border-black/20 dark:hover:border-white/10 hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] transition-all duration-300 cursor-pointer"
+        className="group relative flex aspect-[4/3] w-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-black/10 bg-card shadow-sm isolate transition-colors duration-200 hover:border-primary/20 hover:bg-card-hover dark:border-border dark:shadow-none md:aspect-square"
       >
         {/* Image Header with Gradient Overlay - -inset-0.5 for pixel-perfect edge coverage, no bleed */}
         <div className="relative h-48 w-full overflow-hidden isolate z-0 rounded-t-3xl">
           <div className="absolute -inset-0.5 bg-gradient-to-t from-black/85 via-black/55 via-black/30 via-black/10 to-transparent z-10 rounded-t-3xl" />
-          <div className="absolute -inset-0.5 bg-gradient-to-b from-black/15 via-transparent to-transparent z-10 group-hover:opacity-0 transition-opacity duration-500 rounded-t-3xl" />
+          <div className="absolute -inset-0.5 z-10 rounded-t-3xl bg-gradient-to-b from-black/15 via-transparent to-transparent transition-opacity duration-200 group-hover:opacity-0" />
           {market.image ? (
             <img
               src={market.image}
               alt={market.title}
-              className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out translate-z-0 backface-hidden"
+              className="absolute inset-0 size-full object-cover transition-transform duration-200 ease-out group-hover:scale-[1.02]"
               style={{ transformOrigin: 'center center' }}
             />
           ) : (
@@ -75,8 +75,10 @@ const MarketCard = memo(({ market, navigationState, href }: MarketCardProps) => 
           {/* Volume Badge */}
           <div className="absolute top-4 right-4 z-20">
             <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
-              <Icon name="attach_money" className="text-[10px] text-accent-green" />
-              <span className="text-[10px] font-mono text-white/90">{t("market_card.volume")}: {market.totalPool || market.volume}</span>
+              <Icon name="attach_money" className="text-[10px] text-primary" />
+              <span className="text-[10px] font-mono tabular-nums text-white/90">
+                {t("market_card.volume")}: {market.totalPool || market.volume}
+              </span>
             </div>
           </div>
         </div>
@@ -101,8 +103,10 @@ const MarketCard = memo(({ market, navigationState, href }: MarketCardProps) => 
               <div className="grid grid-cols-2 gap-3">
                 {market.outcomes.map((outcome) => {
                   const isYes = outcome.label.toLowerCase() === "yes";
-                  const colorClass = isYes ? 'text-accent-green' : 'text-primary';
-                  const bgHoverClass = isYes ? 'hover:bg-accent-green/10 hover:border-accent-green/30' : 'hover:bg-primary/10 hover:border-primary/30';
+                  const colorClass = isYes ? "text-up" : "text-down";
+                  const bgHoverClass = isYes
+                    ? "border-border bg-muted/30 hover:border-up/35 hover:bg-up/10"
+                    : "border-border bg-muted/30 hover:border-down/35 hover:bg-down/10";
 
                   return (
                     <button
@@ -110,15 +114,15 @@ const MarketCard = memo(({ market, navigationState, href }: MarketCardProps) => 
                       aria-label={`${isYes ? "Enter YES" : "Enter NO"}: ${market.title}`}
                       onClick={(e) => handleBet(e, isYes ? 'YES' : 'NO', outcome.label)}
                       className={cn(
-                        "relative overflow-hidden rounded-xl border border-white/5 bg-white/5 py-3 px-4 transition-all duration-300 group/btn",
-                        bgHoverClass
+                        "relative overflow-hidden rounded-xl border py-3 px-4 transition-colors duration-200 group/btn",
+                        bgHoverClass,
                       )}
                     >
-                      <div className="flex flex-col items-center gap-1 z-10 relative">
-                        <span className="text-[10px] font-bold tracking-wider uppercase text-muted-foreground group-hover/btn:text-white transition-colors">
+                      <div className="relative z-10 flex flex-col items-center gap-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-colors group-hover/btn:text-foreground">
                           {outcome.label}
                         </span>
-                        <span className={cn("text-xl font-black tracking-tight", colorClass)}>
+                        <span className={cn("text-xl font-black tabular-nums tracking-tight", colorClass)}>
                           {Math.round(outcome.probability)}%
                         </span>
                       </div>
@@ -129,27 +133,27 @@ const MarketCard = memo(({ market, navigationState, href }: MarketCardProps) => 
             ) : (
               <div className="space-y-2">
                 {market.outcomes.slice(0, 3).map((outcome) => (
-                  <div key={outcome.id} className="group/row flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <div key={outcome.id} className="group/row flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/40">
                     <div className="flex items-center gap-3">
-                      <div className="w-1 h-8 rounded-full bg-white/10 group-hover/row:bg-primary transition-colors" />
-                      <span className="text-sm font-medium text-muted-foreground group-hover/row:text-white transition-colors">
+                      <div className="h-8 w-1 rounded-full bg-border transition-colors group-hover/row:bg-primary" />
+                      <span className="text-sm font-medium text-muted-foreground transition-colors group-hover/row:text-foreground">
                         {outcome.label}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-white">{Math.round(outcome.probability)}%</span>
+                      <span className="text-sm font-bold tabular-nums text-foreground">{Math.round(outcome.probability)}%</span>
                       <div className="flex gap-2">
                         <button
                           onClick={(e) => handleBet(e, 'YES', outcome.label)}
                           aria-label={`Enter YES ${market.title}`}
-                          className="px-3 py-1.5 text-[10px] font-bold rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          className="rounded-lg border border-up/25 bg-up/10 px-3 py-1.5 text-[10px] font-bold text-up transition-colors duration-200 hover:bg-up hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           YES
                         </button>
                         <button
                           onClick={(e) => handleBet(e, 'NO', outcome.label)}
                           aria-label={`Enter NO ${market.title}`}
-                          className="px-3 py-1.5 text-[10px] font-bold rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          className="rounded-lg border border-down/25 bg-down/10 px-3 py-1.5 text-[10px] font-bold text-down transition-colors duration-200 hover:bg-down hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           NO
                         </button>

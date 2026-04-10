@@ -71,6 +71,8 @@ export default {
           hover: "hsl(var(--glass-hover))",
           border: "hsl(var(--glass-border))",
         },
+        up: "hsl(var(--up))",
+        down: "hsl(var(--down))",
         retro: {
           dark: "hsl(var(--retro-dark, 220 25% 7%))",
           card: "hsl(var(--retro-card, 220 22% 11%))",

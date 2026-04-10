@@ -56,54 +56,62 @@
     --accent-magenta: 292 84% 45%;
     --accent-green: 160 84% 39%;
     --accent-cyan: 187 92% 40%;
+
+    /* Directional (YES/NO, Up/Down, skew) — light */
+    --up: 152 55% 36%;
+    --down: 350 60% 46%;
   }
 
   .dark {
-    --background: 240 6% 4%;
-    --foreground: 0 0% 100%;
+    /* Blue-slate trading shell (Polymarket / Stake-adjacent) */
+    --background: 222 35% 6%;
+    --foreground: 210 25% 96%;
 
-    --card: 240 5% 9%;
-    --card-foreground: 0 0% 100%;
-    --card-hover: 240 5% 11%;
+    --card: 222 32% 10%;
+    --card-foreground: 210 25% 96%;
+    --card-hover: 222 28% 13%;
 
-    --popover: 240 5% 9%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 222 32% 10%;
+    --popover-foreground: 210 25% 96%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 217 72% 55%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 5% 12%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 222 26% 14%;
+    --secondary-foreground: 210 25% 94%;
 
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 222 22% 16%;
+    --muted-foreground: 215 14% 58%;
 
-    --accent: 187 92% 69%;
-    --accent-foreground: 240 6% 4%;
+    --accent: 217 35% 18%;
+    --accent-foreground: 210 25% 92%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 217 91% 60%;
+    --border: 217 18% 20%;
+    --input: 217 18% 20%;
+    --ring: 217 72% 55%;
 
-    --glass: 0 0% 100% / 0.03;
-    --glass-hover: 0 0% 100% / 0.06;
-    --glass-border: 0 0% 100% / 0.08;
+    --glass: 222 32% 12% / 0.65;
+    --glass-hover: 222 28% 15% / 0.72;
+    --glass-border: 217 18% 24% / 0.85;
 
-    --sidebar-background: 240 6% 4%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 12%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-background: 222 35% 6%;
+    --sidebar-foreground: 210 25% 96%;
+    --sidebar-primary: 217 72% 55%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 222 26% 14%;
+    --sidebar-accent-foreground: 210 25% 94%;
+    --sidebar-border: 217 18% 20%;
+    --sidebar-ring: 217 72% 55%;
 
-    --accent-magenta: 292 84% 61%;
-    --accent-green: 160 84% 39%;
-    --accent-cyan: 187 92% 69%;
+    --accent-magenta: 292 55% 58%;
+    --accent-green: 152 50% 42%;
+    --accent-cyan: 199 65% 52%;
+
+    --up: 152 50% 48%;
+    --down: 350 55% 58%;
   }
 }
 
@@ -126,12 +134,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(240 4% 20%);
+    background: hsl(var(--border));
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(240 4% 25%);
+    background: hsl(var(--muted-foreground) / 0.45);
   }
 }
 
@@ -211,8 +219,8 @@
       hsl(var(--ring)) 75%,
       hsl(var(--accent-magenta)) 100%
     );
-    animation: gradient-shift 4s ease-in-out infinite, glow-pulse 2.5s ease-in-out infinite;
-    filter: drop-shadow(0 0 24px rgba(59, 130, 246, 0.5)) drop-shadow(0 0 48px rgba(99, 102, 241, 0.35));
+    animation: gradient-shift 4s ease-in-out infinite, glow-pulse-soft 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px hsl(var(--primary) / 0.22)) drop-shadow(0 0 20px hsl(var(--ring) / 0.12));
   }
 
   @keyframes gradient-shift {
@@ -220,12 +228,19 @@
     50% { background-position: 100% 50%; }
   }
 
-  @keyframes glow-pulse {
+  @keyframes glow-pulse-soft {
     0%, 100% {
-      filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.45)) drop-shadow(0 0 40px rgba(99, 102, 241, 0.3));
+      filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.18)) drop-shadow(0 0 16px hsl(var(--ring) / 0.1));
     }
     50% {
-      filter: drop-shadow(0 0 32px rgba(6, 182, 212, 0.6)) drop-shadow(0 0 64px rgba(139, 92, 246, 0.4));
+      filter: drop-shadow(0 0 14px hsl(var(--primary) / 0.28)) drop-shadow(0 0 28px hsl(var(--ring) / 0.14));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .text-gradient-animated {
+      animation: none;
+      filter: none;
     }
   }
 

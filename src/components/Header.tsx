@@ -100,8 +100,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       className={cn(
                         "whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-3.5 sm:text-xs sm:tracking-[0.18em]",
                         isActive
-                          ? "bg-foreground text-background"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          ? "border border-primary/25 bg-primary/15 text-primary"
+                          : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       {item.name}
@@ -144,8 +144,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       className={cn(
                         "shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-3.5 sm:text-xs sm:tracking-[0.18em]",
                         isActive
-                          ? "bg-foreground text-background"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          ? "border border-primary/25 bg-primary/15 text-primary"
+                          : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       {item.name}
@@ -177,8 +177,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                           className={cn(
                             "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-3 sm:tracking-[0.18em]",
                             assetClassNav.activeClass === id
-                              ? "bg-foreground text-background"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                              ? "border border-primary/25 bg-primary/15 text-primary"
+                              : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
                           {label}
@@ -206,8 +206,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       className={cn(
                         "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-3 sm:tracking-[0.18em]",
                         discoveryNav.activeTab === tab
-                          ? "bg-foreground text-background"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          ? "border border-primary/25 bg-primary/15 text-primary"
+                          : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       {tab}
@@ -221,8 +221,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                     className={cn(
                       "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-3 sm:tracking-[0.18em]",
                       discoveryNav.assetFilter === "All assets"
-                        ? "bg-foreground text-background"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        ? "border border-primary/25 bg-primary/15 text-primary"
+                        : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                     aria-label="Show all discovery assets"
                   >
@@ -236,8 +236,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       className={cn(
                         "grid min-h-[40px] min-w-[148px] shrink-0 grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border px-2 py-1.5 text-left transition-all duration-200 sm:min-w-[160px] sm:px-2.5",
                         discoveryNav.assetFilter === asset.symbol
-                          ? "border-slate-900/15 bg-white shadow-[0_10px_18px_-16px_rgba(15,23,42,0.28)] dark:border-white/15 dark:bg-slate-900"
-                          : "border-white/60 bg-white/65 hover:border-slate-900/10 hover:bg-white/90 dark:border-white/8 dark:bg-slate-900/55 dark:hover:border-white/14 dark:hover:bg-slate-900/80",
+                          ? "border-slate-900/15 bg-white shadow-[0_10px_18px_-16px_rgba(15,23,42,0.28)] dark:border-primary/30 dark:bg-card dark:shadow-none"
+                          : "border-white/60 bg-white/65 hover:border-slate-900/10 hover:bg-white/90 dark:border-border dark:bg-secondary/80 dark:hover:border-primary/20 dark:hover:bg-card",
                       )}
                       aria-label={`Filter discovery by ${asset.name}`}
                     >
@@ -257,7 +257,7 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       <div
                         className={cn(
                           "min-w-[52px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-semibold whitespace-nowrap tabular-nums sm:min-w-[58px] sm:text-[11px]",
-                          (asset.priceChangePct24h ?? 0) >= 0 ? "text-emerald-500" : "text-rose-500",
+                          (asset.priceChangePct24h ?? 0) >= 0 ? "text-up" : "text-down",
                         )}
                       >
                         {(asset.priceChangePct24h ?? 0) >= 0 ? "+" : ""}
@@ -282,8 +282,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       className={cn(
                         "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-3 sm:tracking-[0.18em]",
                         marketFamilyAssetClassNav.activeClass === id
-                          ? "bg-foreground text-background"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          ? "border border-primary/25 bg-primary/15 text-primary"
+                          : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                       aria-current={marketFamilyAssetClassNav.activeClass === id ? "page" : undefined}
                     >
@@ -332,7 +332,7 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                         <div
                           className={cn(
                             "min-w-[52px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-semibold whitespace-nowrap tabular-nums sm:min-w-[58px] sm:text-[11px]",
-                            (asset.priceChangePct24h ?? 0) >= 0 ? "text-emerald-500" : "text-rose-500",
+                            (asset.priceChangePct24h ?? 0) >= 0 ? "text-up" : "text-down",
                           )}
                         >
                           {(asset.priceChangePct24h ?? 0) >= 0 ? "+" : ""}
@@ -383,7 +383,7 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       </div>
                       <div className={cn(
                         "min-w-[52px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-semibold whitespace-nowrap tabular-nums sm:min-w-[58px] sm:text-[11px]",
-                        (asset.priceChangePct24h ?? 0) >= 0 ? "text-emerald-500" : "text-rose-500",
+                        (asset.priceChangePct24h ?? 0) >= 0 ? "text-up" : "text-down",
                       )}>
                         {(asset.priceChangePct24h ?? 0) >= 0 ? "+" : ""}
                         {(asset.priceChangePct24h ?? 0).toFixed(2)}%

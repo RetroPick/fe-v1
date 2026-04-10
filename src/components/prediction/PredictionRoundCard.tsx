@@ -20,28 +20,28 @@ const statusStyles: Record<string, {
   accent: string;
 }> = {
   live: {
-    badge: "border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300",
-    frame: "border-blue-200/70 bg-[linear-gradient(180deg,rgba(244,249,255,0.98),rgba(227,239,255,0.96))] dark:border-blue-400/20 dark:bg-[linear-gradient(180deg,rgba(7,18,39,0.98),rgba(4,11,24,0.96))]",
-    glow: "shadow-[0_30px_90px_-46px_rgba(37,99,235,0.5)]",
-    accent: "before:bg-blue-400",
+    badge: "border-primary/30 bg-primary/10 text-primary",
+    frame: "border-blue-200/70 bg-[linear-gradient(180deg,rgba(244,249,255,0.98),rgba(227,239,255,0.96))] dark:border-border dark:bg-card",
+    glow: "shadow-sm dark:shadow-none",
+    accent: "before:bg-primary",
   },
   next: {
-    badge: "border-sky-400/30 bg-sky-400/12 text-sky-700 dark:text-sky-300",
-    frame: "border-sky-200/70 bg-[linear-gradient(180deg,rgba(247,251,255,0.98),rgba(232,244,255,0.96))] dark:border-sky-400/15 dark:bg-[linear-gradient(180deg,rgba(8,19,38,0.98),rgba(5,13,28,0.96))]",
-    glow: "shadow-[0_26px_80px_-46px_rgba(59,130,246,0.45)]",
-    accent: "before:bg-sky-400",
+    badge: "border-primary/25 bg-primary/10 text-primary",
+    frame: "border-sky-200/70 bg-[linear-gradient(180deg,rgba(247,251,255,0.98),rgba(232,244,255,0.96))] dark:border-border dark:bg-card",
+    glow: "shadow-sm dark:shadow-none",
+    accent: "before:bg-primary",
   },
   expired: {
-    badge: "border-slate-300/80 bg-slate-200/70 text-slate-600 dark:border-white/10 dark:bg-white/6 dark:text-slate-300",
-    frame: "border-slate-200/90 bg-[linear-gradient(180deg,rgba(249,250,251,0.98),rgba(241,245,249,0.98))] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(23,23,28,0.98),rgba(16,18,24,0.98))]",
-    glow: "shadow-[0_24px_56px_-46px_rgba(100,116,139,0.42)]",
-    accent: "before:bg-slate-400",
+    badge: "border-slate-300/80 bg-slate-200/70 text-slate-600 dark:border-border dark:bg-muted dark:text-muted-foreground",
+    frame: "border-slate-200/90 bg-[linear-gradient(180deg,rgba(249,250,251,0.98),rgba(241,245,249,0.98))] dark:border-border dark:bg-card",
+    glow: "shadow-sm dark:shadow-none",
+    accent: "before:bg-muted-foreground",
   },
   later: {
-    badge: "border-slate-300/80 bg-slate-200/70 text-slate-600 dark:border-white/10 dark:bg-white/6 dark:text-slate-300",
-    frame: "border-slate-200/90 bg-[linear-gradient(180deg,rgba(248,250,252,0.98),rgba(241,245,249,0.98))] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(26,28,34,0.98),rgba(17,19,25,0.98))]",
-    glow: "shadow-[0_24px_56px_-46px_rgba(100,116,139,0.38)]",
-    accent: "before:bg-slate-400",
+    badge: "border-slate-300/80 bg-slate-200/70 text-slate-600 dark:border-border dark:bg-muted dark:text-muted-foreground",
+    frame: "border-slate-200/90 bg-[linear-gradient(180deg,rgba(248,250,252,0.98),rgba(241,245,249,0.98))] dark:border-border dark:bg-card",
+    glow: "shadow-sm dark:shadow-none",
+    accent: "before:bg-muted-foreground",
   },
 };
 
@@ -156,7 +156,7 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
     const potentialWin = Number.isFinite(parsedEntryAmount) && parsedEntryAmount > 0 ? parsedEntryAmount * selectedPayout : null;
 
     const nextFaceShell =
-      "absolute inset-0 overflow-hidden rounded-[28px] border border-sky-400/20 bg-gradient-to-b from-slate-900 via-slate-900 to-sky-900 text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.65)]";
+      "absolute inset-0 overflow-hidden rounded-[28px] border border-border bg-card text-foreground shadow-sm dark:shadow-none";
     const hasCommitAmount = entryAmount.trim().length > 0;
 
     return (
@@ -169,52 +169,45 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
             className={cn(nextFaceShell, entrySide ? "pointer-events-none" : "pointer-events-auto")}
             style={{ backfaceVisibility: "hidden" }}
           >
-            <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_top,rgba(14,165,233,0.35),transparent_65%)]" />
             <div className="relative flex h-full min-h-0 flex-col gap-3 px-4 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                   {round.assetImage ? (
-                    <img src={round.assetImage} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-white/20" />
+                    <img src={round.assetImage} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-border" />
                   ) : null}
-                  <div className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-sky-100">
-                    <PlayCircle className="h-4 w-4 shrink-0 text-sky-300" aria-hidden />
+                  <div className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-foreground">
+                    <PlayCircle className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                     <span>Next</span>
                   </div>
                 </div>
-                <span className="shrink-0 text-sm font-medium tabular-nums text-white/55">{marketTag}</span>
+                <span className="shrink-0 text-sm font-medium tabular-nums text-muted-foreground">{marketTag}</span>
               </div>
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between gap-2 text-xs">
-                  <span className="text-white/50">Open bias</span>
-                  <span className="font-medium text-white/90">Use current price</span>
+                  <span className="text-muted-foreground">Open bias</span>
+                  <span className="font-medium text-foreground">Use current price</span>
                 </div>
-                <div className="flex items-center justify-between text-lg font-semibold tracking-tight">
-                  <span className="text-emerald-300">Up {nextUpPercent}%</span>
-                  <span className="text-rose-300">Down {nextDownPercent}%</span>
+                <div className="flex items-center justify-between text-lg font-semibold tracking-tight tabular-nums">
+                  <span className="text-up">Up {nextUpPercent}%</span>
+                  <span className="text-down">Down {nextDownPercent}%</span>
                 </div>
-                <div className="flex h-2 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    style={{ width: `${nextUpPercent}%` }}
-                    className="h-full bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-300"
-                  />
-                  <div
-                    style={{ width: `${nextDownPercent}%` }}
-                    className="h-full bg-gradient-to-r from-rose-500 via-red-500 to-red-600"
-                  />
+                <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+                  <div style={{ width: `${nextUpPercent}%` }} className="h-full bg-up" />
+                  <div style={{ width: `${nextDownPercent}%` }} className="h-full bg-down" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-x-6 gap-y-1">
                 <div>
-                  <div className="text-xs font-medium text-white/45">Price</div>
-                  <div className="mt-1 text-lg font-semibold tabular-nums text-white">
+                  <div className="text-xs font-medium text-muted-foreground">Price</div>
+                  <div className="mt-1 text-lg font-semibold tabular-nums text-foreground">
                     {round.lastPrice !== undefined ? formatPrice(round.lastPrice) : "—"}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-medium text-white/45">Prize pool</div>
-                  <div className="mt-1 text-lg font-semibold tabular-nums text-white">{round.prizePool}</div>
+                  <div className="text-xs font-medium text-muted-foreground">Prize pool</div>
+                  <div className="mt-1 text-lg font-semibold tabular-nums text-foreground">{round.prizePool}</div>
                 </div>
               </div>
 
@@ -222,14 +215,14 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
                 <button
                   type="button"
                   onClick={() => setEntrySide("Up")}
-                  className="w-full rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-300 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300/50"
+                  className="w-full rounded-xl bg-up py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-up/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   Enter up
                 </button>
                 <button
                   type="button"
                   onClick={() => setEntrySide("Down")}
-                  className="w-full rounded-xl bg-gradient-to-r from-rose-500 via-red-500 to-rose-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300/50"
+                  className="w-full rounded-xl bg-down py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-down/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   Enter down
                 </button>

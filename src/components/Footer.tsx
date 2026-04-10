@@ -17,8 +17,8 @@ const Footer = () => {
           <a href="#" className="hover:text-foreground transition-colors">{t('footer.support')}</a>
           <a href="#" className="hover:text-foreground transition-colors">{t('footer.documentation')}</a>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 bg-accent-green/5 border border-accent-green/20 rounded-full text-accent-green">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
+        <div className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1 text-muted-foreground">
+          <span className="size-1.5 animate-pulse rounded-full bg-primary" />
           <span>Deterministic settlement active</span>
         </div>
       </div>

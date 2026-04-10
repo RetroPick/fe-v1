@@ -347,16 +347,7 @@ export default function PredictionDashboard() {
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-background text-foreground">
       <div className="relative flex-1">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.08),transparent_42%)] dark:bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.14),transparent_46%)]" />
-          <div className="dashboard-bg-stage absolute inset-x-0 bottom-0 h-[48rem] md:h-[44rem]">
-            <div className="dashboard-bg-mesh absolute inset-x-[-8%] bottom-[-8rem] h-[34rem] rounded-[50%] opacity-90 blur-[18px]" />
-            <div className="dashboard-bg-orb dashboard-bg-fast absolute left-[-2%] bottom-20 h-[18rem] w-[18rem] rounded-full bg-cyan-400/45 blur-[95px] dark:bg-cyan-400/28" />
-            <div className="dashboard-bg-orb dashboard-bg-slow absolute left-[18%] bottom-6 h-[22rem] w-[26rem] rounded-full bg-blue-500/40 blur-[110px] dark:bg-blue-500/30" />
-            <div className="dashboard-bg-orb absolute right-[8%] bottom-16 h-[20rem] w-[22rem] rounded-full bg-emerald-400/35 blur-[110px] dark:bg-emerald-400/22" />
-            <div className="dashboard-bg-band absolute left-1/2 bottom-24 h-40 w-[78%] max-w-[72rem] -translate-x-1/2 rounded-[999px] bg-gradient-to-r from-blue-500/28 via-cyan-300/34 to-emerald-300/26 blur-[38px]" />
-            <div className="dashboard-bg-band dashboard-bg-band-reverse absolute left-1/2 bottom-10 h-32 w-[62%] max-w-[54rem] -translate-x-1/2 rounded-[999px] bg-gradient-to-r from-cyan-300/18 via-blue-400/28 to-emerald-300/18 blur-[30px]" />
-            <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-background via-background/45 to-transparent" />
-          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsl(var(--primary)/0.1),transparent_55%)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-5%,hsl(var(--primary)/0.12),transparent_58%)]" />
         </div>
 
         <Header

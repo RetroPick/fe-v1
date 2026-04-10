@@ -28,17 +28,17 @@ import Icon from "@/components/Icon";
 import Logo from "@/components/Logo";
 import { IDKitWidget, VerificationLevel, ISuccessResult } from '@worldcoin/idkit';
 import { useToast } from "@/components/ui/use-toast";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { useAppKit } from "@reown/appkit/react";
 
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : "Unexpected error";
 
 const Login = () => {
     const { isConnected, address, chain } = useAccount();
+    const { open: openAppKit } = useAppKit();
     const { switchChain } = useSwitchChain();
     const fujiChainId = 43113; // Avalanche Fuji Testnet
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { connectCoinbase, connectInjected, hasInjectedConnector, isPending, pendingConnector } = useWalletConnection();
     const [isVerified, setIsVerified] = useState(false);
     const [isTradingEnabled, setIsTradingEnabled] = useState(false);
 
@@ -121,22 +121,6 @@ const Login = () => {
         setIsVerified(true);
     };
 
-    const handleConnectCoinbase = async () => {
-        try {
-            await connectCoinbase();
-        } catch (error) {
-            toast({ title: "Coinbase Wallet failed", description: getErrorMessage(error), variant: "destructive" });
-        }
-    };
-
-    const handleConnectInjected = async () => {
-        try {
-            await connectInjected();
-        } catch (error) {
-            toast({ title: "Wallet connection failed", description: getErrorMessage(error), variant: "destructive" });
-        }
-    };
-
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden p-4">
             {/* Animated Background Effects */}
@@ -196,24 +180,13 @@ const Login = () => {
                             transition={{ delay: 0.4 }}
                         >
                             <Button
-                                onClick={handleConnectCoinbase}
+                                onClick={() => openAppKit()}
                                 variant="outline"
                                 className="w-full border-2 border-dashed border-blue-200 bg-blue-50/30 text-blue-600 hover:bg-blue-50/80 hover:border-blue-300 h-14 font-medium transition-all hover:scale-[1.01]"
-                                disabled={isPending}
                             >
                                 <Icon name={isConnected ? "check_circle" : "account_balance_wallet"} className="mr-2 text-xl" />
-                                {isConnected ? `Connected: ${address?.slice(0, 6)}...${address?.slice(-4)}` : pendingConnector?.id === 'coinbaseWalletSDK' ? "Opening Coinbase Wallet..." : "1. Connect Coinbase Wallet"}
+                                {isConnected ? `Connected: ${address?.slice(0, 6)}...${address?.slice(-4)}` : "1. Connect Web3 Wallet"}
                             </Button>
-                            {!isConnected && (
-                                <Button
-                                    onClick={handleConnectInjected}
-                                    variant="ghost"
-                                    className="w-full mt-3 text-slate-500 hover:text-slate-700"
-                                    disabled={!hasInjectedConnector || isPending}
-                                >
-                                    {hasInjectedConnector ? "Use Browser Wallet Instead" : "No Browser Wallet Detected"}
-                                </Button>
-                            )}
                         </motion.div>
 
                         {/* 2. Add / Switch Network (Only shows if wrong network) */}

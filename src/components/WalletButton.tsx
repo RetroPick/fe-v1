@@ -79,15 +79,15 @@ const WalletButton = () => {
                             <span className="text-[9px] text-muted-foreground uppercase font-bold leading-none mb-0.5">
                                 {t('balance')}
                             </span>
-                            <span className="text-xs font-bold text-accent-cyan">
+                            <span className="text-xs font-bold tabular-nums text-primary">
                                 {isConnected ? nativeBalanceFormatted : "0.00"}
                             </span>
                         </div>
 
-                        <div className="size-8 bg-gradient-to-br from-gray-700 to-gray-900 border border-border rounded-full flex items-center justify-center relative shadow-sm group-hover:shadow-md transition-all">
-                            <div className="w-full h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-80" />
+                        <div className="size-8 rounded-full border border-border bg-muted ring-1 ring-primary/25 flex items-center justify-center relative shadow-sm group-hover:ring-primary/40 transition-all">
+                            <div className="size-4 rounded-full bg-primary/85" />
                             {isWorldIDVerified && (
-                                <div className="absolute -top-1 -right-1 size-3.5 bg-green-500 rounded-full border-2 border-secondary flex items-center justify-center z-10">
+                                <div className="absolute -top-1 -right-1 size-3.5 bg-up rounded-full border-2 border-card flex items-center justify-center z-10">
                                     <Check className="size-2.5 text-white" strokeWidth={3} />
                                 </div>
                             )}
@@ -97,7 +97,9 @@ const WalletButton = () => {
                 <DropdownMenuContent align="end" className="w-[300px] p-0 overflow-hidden bg-popover border-border text-popover-foreground rounded-xl shadow-2xl z-[10000]">
                     {/* Header Section */}
                     <div className="p-4 flex items-start gap-3 relative">
-                        <div className="size-10 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shrink-0" />
+                        <div className="size-10 shrink-0 rounded-full border border-border bg-muted ring-1 ring-primary/30 flex items-center justify-center">
+                            <div className="size-5 rounded-full bg-primary/90" />
+                        </div>
                         <div className="flex-1 min-w-0">
                             <div className="font-bold text-base truncate">{address}</div>
                             <div className="flex items-center gap-2 text-muted-foreground text-xs font-mono">
@@ -145,7 +147,7 @@ const WalletButton = () => {
                         {/* Dark Mode Toggle */}
                         <DropdownMenuItem className="focus:bg-transparent rounded-lg py-2.5 px-3 flex items-center justify-between cursor-default">
                             <div className="flex items-center">
-                                <Moon className="mr-3 size-4 text-indigo-400" />
+                                                               <Moon className="mr-3 size-4 text-muted-foreground" />
                                 <span className="font-medium">{t('dark_mode')}</span>
                             </div>
                             <Switch
