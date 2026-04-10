@@ -52,7 +52,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <section className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-4">
           {filteredMarkets.map((market) => (
             <MarketCard key={market.id} market={market} />
           ))}

@@ -9,9 +9,9 @@ interface PredictionRoundCardProps {
   onRequestLogin?: () => void;
 }
 
-/** Fixed 1:1 tile used by the carousel so every round card aligns. */
+/** Compact tile for carousel (Polymarket-ish proportions, not oversized square). */
 const ROUND_CARD_SQUARE =
-  "aspect-square w-[min(100%,320px)] min-w-[260px] max-w-[320px] shrink-0";
+  "aspect-[4/5] w-[min(100%,260px)] min-w-[220px] max-w-[260px] shrink-0 sm:aspect-[3/4] sm:max-w-[280px]";
 
 const statusStyles: Record<string, {
   badge: string;
@@ -21,25 +21,25 @@ const statusStyles: Record<string, {
 }> = {
   live: {
     badge: "border-primary/30 bg-primary/10 text-primary",
-    frame: "border-blue-200/70 bg-[linear-gradient(180deg,rgba(244,249,255,0.98),rgba(227,239,255,0.96))] dark:border-border dark:bg-card",
+    frame: "border-blue-200/70 bg-[linear-gradient(180deg,rgba(244,249,255,0.98),rgba(227,239,255,0.96))] dark:border-border/80 dark:bg-card dark:bg-none",
     glow: "shadow-sm dark:shadow-none",
     accent: "before:bg-primary",
   },
   next: {
     badge: "border-primary/25 bg-primary/10 text-primary",
-    frame: "border-sky-200/70 bg-[linear-gradient(180deg,rgba(247,251,255,0.98),rgba(232,244,255,0.96))] dark:border-border dark:bg-card",
+    frame: "border-sky-200/70 bg-[linear-gradient(180deg,rgba(247,251,255,0.98),rgba(232,244,255,0.96))] dark:border-border/80 dark:bg-card dark:bg-none",
     glow: "shadow-sm dark:shadow-none",
     accent: "before:bg-primary",
   },
   expired: {
     badge: "border-slate-300/80 bg-slate-200/70 text-slate-600 dark:border-border dark:bg-muted dark:text-muted-foreground",
-    frame: "border-slate-200/90 bg-[linear-gradient(180deg,rgba(249,250,251,0.98),rgba(241,245,249,0.98))] dark:border-border dark:bg-card",
+    frame: "border-slate-200/90 bg-[linear-gradient(180deg,rgba(249,250,251,0.98),rgba(241,245,249,0.98))] dark:border-border/80 dark:bg-card dark:bg-none",
     glow: "shadow-sm dark:shadow-none",
     accent: "before:bg-muted-foreground",
   },
   later: {
     badge: "border-slate-300/80 bg-slate-200/70 text-slate-600 dark:border-border dark:bg-muted dark:text-muted-foreground",
-    frame: "border-slate-200/90 bg-[linear-gradient(180deg,rgba(248,250,252,0.98),rgba(241,245,249,0.98))] dark:border-border dark:bg-card",
+    frame: "border-slate-200/90 bg-[linear-gradient(180deg,rgba(248,250,252,0.98),rgba(241,245,249,0.98))] dark:border-border/80 dark:bg-card dark:bg-none",
     glow: "shadow-sm dark:shadow-none",
     accent: "before:bg-muted-foreground",
   },
@@ -156,7 +156,7 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
     const potentialWin = Number.isFinite(parsedEntryAmount) && parsedEntryAmount > 0 ? parsedEntryAmount * selectedPayout : null;
 
     const nextFaceShell =
-      "absolute inset-0 overflow-hidden rounded-[28px] border border-border bg-card text-foreground shadow-sm dark:shadow-none";
+      "absolute inset-0 overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-sm dark:shadow-none";
     const hasCommitAmount = entryAmount.trim().length > 0;
 
     return (
@@ -234,13 +234,12 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
             className={cn(nextFaceShell, entrySide ? "pointer-events-auto" : "pointer-events-none")}
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
-            <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_top,rgba(14,165,233,0.35),transparent_65%)]" />
             <div className="relative flex h-full min-h-0 flex-col gap-3 px-4 pb-4 pt-3 sm:gap-4 sm:pb-5 sm:pt-4">
               <div className="flex shrink-0 items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => setEntrySide(null)}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-white transition hover:text-white/85"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground transition hover:text-muted-foreground"
                 >
                   <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
                   Set position
@@ -249,10 +248,10 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
                   type="button"
                   onClick={() => setEntrySide(isUp ? "Down" : "Up")}
                   className={cn(
-                    "min-h-[2rem] shrink-0 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] sm:px-3.5 sm:text-xs sm:tracking-[0.16em]",
+                    "min-h-[2rem] shrink-0 rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] sm:px-3.5 sm:text-xs sm:tracking-[0.16em]",
                     isUp
-                      ? "bg-emerald-500/35 text-emerald-50 outline-emerald-400/50 focus-visible:outline-emerald-300/60"
-                      : "bg-rose-500/35 text-rose-50 outline-rose-400/50 focus-visible:outline-rose-300/60",
+                      ? "border-up/40 bg-up/15 text-up focus-visible:outline-up/50"
+                      : "border-down/40 bg-down/15 text-down focus-visible:outline-down/50",
                   )}
                   aria-pressed={true}
                   aria-label={isUp ? "Side: Up. Click to switch to Down." : "Side: Down. Click to switch to Up."}
@@ -286,8 +285,10 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
                         "rounded-none focus:border-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
                         "[color-scheme:dark]",
                         "font-mono text-[1.65rem] font-semibold tabular-nums tracking-tight leading-none sm:text-[1.85rem] md:text-[2.15rem]",
-                        "caret-sky-300",
-                        hasCommitAmount ? "text-white" : "text-white/88 placeholder:font-sans placeholder:font-medium placeholder:text-white/34",
+                        "caret-primary",
+                        hasCommitAmount
+                          ? "text-foreground"
+                          : "text-foreground/90 placeholder:font-sans placeholder:font-medium placeholder:text-muted-foreground",
                       )}
                     />
                   </div>
@@ -298,7 +299,7 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
                         key={value}
                         type="button"
                         onClick={() => setQuickAmount(value)}
-                        className="min-w-[3.25rem] flex-1 rounded-lg bg-white/10 py-2 text-xs font-medium text-white/85 transition hover:bg-white/16"
+                        className="min-w-[3.25rem] flex-1 rounded-lg border border-border bg-muted py-2 text-xs font-medium text-foreground transition hover:bg-muted/80"
                       >
                         +${value}
                       </button>
@@ -306,16 +307,14 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 border-t border-white/15 pt-3 sm:gap-2 sm:pt-3">
+                <div className="flex flex-col gap-2 border-t border-border pt-3 sm:gap-2 sm:pt-3">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-xs text-white/55 sm:text-sm">To win</span>
-                    <span className="text-lg font-semibold tabular-nums text-white sm:text-xl">
+                    <span className="text-xs text-muted-foreground sm:text-sm">To win</span>
+                    <span className="text-lg font-semibold tabular-nums text-foreground sm:text-xl">
                       {potentialWin ? formatUsd(potentialWin) : "—"}
                     </span>
                   </div>
-                  <p className="text-xs text-white/45 sm:text-sm">
-                    {selectedPayout.toFixed(2)}× payout
-                  </p>
+                  <p className="text-xs text-muted-foreground sm:text-sm">{selectedPayout.toFixed(2)}× payout</p>
                   <button
                     type="button"
                     onPointerDown={(event) => event.stopPropagation()}
@@ -326,8 +325,8 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
                       }
                     }}
                     className={cn(
-                      "mt-1 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-105 sm:py-3 sm:text-base",
-                      isUp ? "bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-300" : "bg-gradient-to-r from-rose-500 via-red-500 to-rose-600",
+                      "mt-1 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-95 sm:py-3 sm:text-base",
+                      isUp ? "bg-up" : "bg-down",
                     )}
                   >
                     {!isConnected ? "Connect wallet" : entryAmount ? `Commit $${entryAmount}` : "Commit $0"}
@@ -344,9 +343,9 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
   const mutedCard = isExpired || isLater;
   const expiredOutcomeTheme = isExpired
     ? resolvedOutcome === "Up"
-      ? "border-emerald-200/90 bg-[linear-gradient(180deg,rgba(249,250,251,0.98),rgba(236,253,245,0.98),rgba(16,185,129,0.18))] shadow-[0_28px_72px_-48px_rgba(16,185,129,0.5)] dark:border-emerald-400/15 dark:bg-[linear-gradient(180deg,rgba(20,24,28,0.98),rgba(10,30,24,0.98),rgba(5,150,105,0.24))]"
+      ? "border-emerald-200/90 bg-[linear-gradient(180deg,rgba(249,250,251,0.98),rgba(236,253,245,0.98),rgba(16,185,129,0.18))] shadow-sm dark:border-up/30 dark:bg-card dark:bg-none dark:shadow-none"
       : resolvedOutcome === "Down"
-        ? "border-rose-200/90 bg-[linear-gradient(180deg,rgba(249,250,251,0.98),rgba(255,241,242,0.98),rgba(244,63,94,0.16))] shadow-[0_28px_72px_-48px_rgba(244,63,94,0.46)] dark:border-rose-400/15 dark:bg-[linear-gradient(180deg,rgba(22,22,28,0.98),rgba(34,13,22,0.98),rgba(190,24,93,0.24))]"
+        ? "border-rose-200/90 bg-[linear-gradient(180deg,rgba(249,250,251,0.98),rgba(255,241,242,0.98),rgba(244,63,94,0.16))] shadow-sm dark:border-down/30 dark:bg-card dark:bg-none dark:shadow-none"
         : statusStyle.frame
     : "";
 
@@ -354,10 +353,10 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
     <div className={ROUND_CARD_SQUARE}>
       <div
         className={cn(
-          "group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border p-3 text-slate-950 transition-all duration-300 hover:-translate-y-1 dark:text-white",
+          "group relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border p-3 text-foreground transition-colors duration-200 hover:border-primary/20",
           isExpired ? expiredOutcomeTheme : statusStyle.frame,
           statusStyle.glow,
-          mutedCard && "opacity-85 saturate-75",
+          mutedCard && "opacity-85 saturate-75 dark:opacity-100 dark:saturate-100",
         )}
       >
       <div className={cn("pointer-events-none absolute inset-y-4 left-0 w-1 rounded-r-full opacity-90", statusStyle.accent)} />
@@ -371,7 +370,7 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
             {formatStatus(round.status)}
           </div>
         </div>
-        <div className="rounded-full border border-black/5 bg-black/[0.03] px-3 py-1 text-[11px] font-semibold text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
+        <div className="rounded-full border border-black/5 bg-black/[0.03] px-3 py-1 text-[11px] font-semibold text-muted-foreground dark:border-border dark:bg-muted/50">
           {marketTag}
         </div>
       </div>
@@ -383,22 +382,22 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
               <div>
                 <div className={cn(
                   "text-[11px] font-bold uppercase tracking-[0.22em]",
-                  resolvedOutcome === "Up" ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300",
+                  resolvedOutcome === "Up" ? "text-up" : "text-down",
                 )}>
                   Outcome
                 </div>
                 <div className={cn(
                   "mt-1.5 text-[1.6rem] font-black tracking-tight",
-                  resolvedOutcome === "Up" ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300",
+                  resolvedOutcome === "Up" ? "text-up" : "text-down",
                 )}>
                   {resolvedOutcome}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
                   {outcomePayout?.toFixed(2)}x
                 </div>
-                <div className="mt-1.5 text-base font-semibold text-slate-900 dark:text-white">Payout</div>
+                <div className="mt-1.5 text-base font-semibold text-foreground">Payout</div>
               </div>
             </div>
           </div>
@@ -411,18 +410,18 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
                 ) : (
                   <ArrowDownRight className="size-5 text-blue-700 dark:text-blue-300" />
                 )}
-                <span className="text-[1.45rem] font-semibold tracking-tight text-slate-950 dark:text-white">
+                <span className="text-[1.45rem] font-semibold tracking-tight text-foreground">
                   {favoredSide} {favoredPercent}%
                 </span>
               </div>
-              <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              <div className="mt-1 text-sm text-muted-foreground">
                 {isLive ? "Calculating resolution" : `${favoredPayout}x payout`}
               </div>
             </div>
 
             <div className="text-right">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Other</div>
-              <div className="mt-1.5 text-xl font-semibold tracking-tight text-slate-950 dark:text-white">{opposingPayout}x</div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Other</div>
+              <div className="mt-1.5 text-xl font-semibold tracking-tight text-foreground">{opposingPayout}x</div>
             </div>
           </div>
         )}
@@ -430,51 +429,31 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
         {!isLater && (
         <div className={cn("mt-3 pt-3", !isNext && "border-t border-slate-200/80 dark:border-white/10")}>
           <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.18em]">
-            <span className={cn(
-              isExtremeLean
-                ? isUpFavored
-                  ? "text-emerald-600 dark:text-emerald-300"
-                  : "text-rose-400 dark:text-rose-300"
-                : "text-emerald-600 dark:text-emerald-300",
-            )}>
+            <span
+              className={cn(
+                isExtremeLean ? (isUpFavored ? "text-up" : "text-down/80") : "text-up",
+              )}
+            >
               Up {round.upPercent}%
             </span>
             <span className={cn(
               isExtremeLean
                 ? !isUpFavored
-                  ? "text-rose-600 dark:text-rose-300"
-                  : "text-emerald-500/75 dark:text-emerald-200/75"
-                : "text-rose-600 dark:text-rose-300",
+                  ? "text-down"
+                  : "text-up/80"
+                : "text-down",
             )}>
               Down {round.downPercent}%
             </span>
           </div>
-          <div className={cn(
-            "flex h-2.5 overflow-hidden rounded-full dark:bg-white/10",
-            isExtremeLean ? (isUpFavored ? "bg-emerald-100/90" : "bg-rose-100/90") : "bg-slate-200/80",
-          )}>
-            <div
-              style={{ width: `${round.upPercent}%` }}
-              className={cn(
-                "h-full rounded-full",
-                isExtremeLean
-                  ? (isUpFavored
-                    ? "bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-300"
-                    : "bg-gradient-to-r from-rose-300 via-rose-400 to-red-500")
-                  : "bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-300",
-              )}
-            />
-            <div
-              style={{ width: `${round.downPercent}%` }}
-              className={cn(
-                "h-full rounded-full",
-                isExtremeLean
-                  ? (!isUpFavored
-                    ? "bg-gradient-to-r from-rose-500 via-red-500 to-red-600"
-                    : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500")
-                  : "bg-gradient-to-r from-rose-500 via-red-500 to-red-600",
-              )}
-            />
+          <div
+            className={cn(
+              "flex h-2.5 overflow-hidden rounded-full bg-muted",
+              !isExtremeLean && "bg-slate-200/80 dark:bg-muted",
+            )}
+          >
+            <div style={{ width: `${round.upPercent}%` }} className="h-full rounded-full bg-up" />
+            <div style={{ width: `${round.downPercent}%` }} className="h-full rounded-full bg-down" />
           </div>
         </div>
         )}
@@ -489,9 +468,9 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
         >
           {!isLater && priceLabel && marketPrice !== undefined ? (
             <div className={cn("grid min-w-0 content-start gap-1", isLive && "text-sm")}>
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{isLive ? "Last Price" : "Close"}</div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{isLive ? "Last Price" : "Close"}</div>
               <div className={cn(
-                "font-semibold text-slate-950 dark:text-white tabular-nums",
+                "font-semibold text-foreground tabular-nums",
                 isLive ? "min-h-[1.75rem] whitespace-nowrap text-base leading-7 sm:text-lg" : "text-[1.45rem] tracking-tight",
               )}>
                 {formatPrice(marketPrice)}
@@ -501,23 +480,23 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
 
           {isExpired && (
             <div className="text-right text-sm">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Prize Pool</div>
-              <div className="mt-1 font-semibold text-slate-950 dark:text-white">{round.prizePool}</div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Prize Pool</div>
+              <div className="mt-1 font-semibold text-foreground">{round.prizePool}</div>
             </div>
           )}
 
           {isLive && (
             <div className="grid min-w-0 content-start gap-1 text-sm">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Locked Price</div>
-              <div className="min-h-[1.75rem] whitespace-nowrap text-base font-semibold leading-7 text-slate-950 dark:text-white tabular-nums sm:text-lg">{formatPrice(round.lockPrice)}</div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Locked Price</div>
+              <div className="min-h-[1.75rem] whitespace-nowrap text-base font-semibold leading-7 text-foreground tabular-nums sm:text-lg">{formatPrice(round.lockPrice)}</div>
             </div>
           )}
 
           {isLive && (
             <div className="col-span-2 flex items-end justify-between gap-3 text-sm">
               <div className="min-w-0">
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Prize Pool</div>
-                <div className="mt-1 font-semibold text-slate-950 dark:text-white">{round.prizePool}</div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Prize Pool</div>
+                <div className="mt-1 font-semibold text-foreground">{round.prizePool}</div>
               </div>
               <button
                 type="button"
@@ -530,8 +509,8 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
 
           {isLater && (
             <div>
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Time Left</div>
-              <div className="mt-1.5 text-[1.55rem] font-black tracking-tight text-slate-800 dark:text-slate-100">
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Time Left</div>
+              <div className="mt-1.5 text-[1.55rem] font-black tracking-tight text-foreground">
                 {liveStartsIn ?? "--"}
               </div>
             </div>
@@ -545,7 +524,7 @@ export function PredictionRoundCard({ round, onRequestLogin }: PredictionRoundCa
                 type="button"
                 className={cn(
                   "rounded-2xl px-4 py-2.5 text-xs font-black uppercase tracking-[0.18em] transition-colors",
-                  "border border-slate-300/80 bg-slate-200/70 text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300",
+                  "border border-slate-300/80 bg-slate-200/70 text-slate-600 dark:border-border dark:bg-muted/60 dark:text-muted-foreground",
                 )}
                 disabled
               >

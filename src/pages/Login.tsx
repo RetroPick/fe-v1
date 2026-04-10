@@ -28,13 +28,12 @@ import Icon from "@/components/Icon";
 import Logo from "@/components/Logo";
 import { IDKitWidget, VerificationLevel, ISuccessResult } from '@worldcoin/idkit';
 import { useToast } from "@/components/ui/use-toast";
-import { useAppKit } from "@reown/appkit/react";
+import { openAppKitModal } from "@/lib/openAppKitModal";
 
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : "Unexpected error";
 
 const Login = () => {
     const { isConnected, address, chain } = useAccount();
-    const { open: openAppKit } = useAppKit();
     const { switchChain } = useSwitchChain();
     const fujiChainId = 43113; // Avalanche Fuji Testnet
     const navigate = useNavigate();
@@ -180,7 +179,7 @@ const Login = () => {
                             transition={{ delay: 0.4 }}
                         >
                             <Button
-                                onClick={() => openAppKit()}
+                                onClick={() => void openAppKitModal()}
                                 variant="outline"
                                 className="w-full border-2 border-dashed border-blue-200 bg-blue-50/30 text-blue-600 hover:bg-blue-50/80 hover:border-blue-300 h-14 font-medium transition-all hover:scale-[1.01]"
                             >

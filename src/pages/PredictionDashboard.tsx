@@ -144,7 +144,7 @@ function TradingChartLoadingState() {
           <div className="h-3 w-24 animate-pulse rounded-full bg-muted dark:bg-slate-700/70" />
           <div className="h-5 w-36 animate-pulse rounded-full bg-muted/80 dark:bg-slate-700/60" />
         </div>
-        <div className="h-8 w-20 animate-pulse rounded-full bg-emerald-500/10 dark:bg-emerald-500/20" />
+        <div className="h-8 w-20 animate-pulse rounded-full bg-muted" />
       </div>
       <div className="border-b border-border px-4 py-3 dark:border-slate-800">
         <div className="h-4 w-2/3 animate-pulse rounded-full bg-muted/80 dark:bg-slate-700/60" />
@@ -357,7 +357,7 @@ export default function PredictionDashboard() {
           }}
         />
 
-        <main className="relative mx-auto max-w-[1440px] px-4 pb-14 pt-2 lg:px-8">
+        <main className="relative mx-auto max-w-[1440px] px-5 pb-16 pt-6 lg:px-10">
           {assetClass !== "crypto" ? (
             <p className="mb-2 text-center text-[11px] text-muted-foreground">
               Illustrative rounds — reference data only; not on-chain settlement.

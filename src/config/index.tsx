@@ -25,7 +25,8 @@ export const wagmiAdapter = new WagmiAdapter({
     storage: createStorage({
         storage: cookieStorage,
     }),
-    ssr: false,
+    /** Matches Reown + Wagmi docs; avoids subtle client init issues with cookie storage */
+    ssr: true,
     projectId,
     networks,
     transports: {

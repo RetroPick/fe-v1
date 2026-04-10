@@ -4,8 +4,8 @@ const Footer = () => {
   const { t } = useLanguage();
 
   return (
-    <footer className="border-t border-border/50 py-12 px-4 lg:px-8 bg-background">
-      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+    <footer className="border-t border-border/40 bg-background py-14 px-5 dark:border-white/[0.06] lg:px-10">
+      <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-10 text-[10px] font-bold uppercase tracking-widest text-muted-foreground md:flex-row md:gap-8">
         <div className="flex items-center gap-6">
           <span>{t('footer.copyright')}</span>
           <div className="w-px h-3 bg-border" />

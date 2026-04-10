@@ -144,7 +144,7 @@ const MarketDetail = () => {
                     </div>
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted/70">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-primary via-cyan-400 to-emerald-400"
+                        className="h-full rounded-full bg-primary"
                         style={{ width: `${outcome.probability}%` }}
                       />
                     </div>

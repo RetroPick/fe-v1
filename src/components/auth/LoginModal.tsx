@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import { useAppKitAccount } from "@reown/appkit/react";
+import { openAppKitModal } from "@/lib/openAppKitModal";
 import { executeSocialLogin } from "@reown/appkit-controllers/utils";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,6 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const { open } = useAppKit();
   const { isConnected } = useAppKitAccount();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -45,18 +45,32 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     }
   };
 
+  /** Close Radix Dialog first: overlay/focus trap can block or hide the AppKit modal behind it. */
+  const handleWeb3Connect = () => {
+    onClose();
+    window.setTimeout(() => {
+      void Promise.resolve(openAppKitModal()).catch((error: unknown) => {
+        toast({
+          title: "Could not open wallet modal",
+          description: error instanceof Error ? error.message : "Try again or refresh the page.",
+          variant: "destructive",
+        });
+      });
+    }, 0);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="gap-0 overflow-hidden border-white/40 bg-white/90 p-0 shadow-2xl shadow-blue-900/10 backdrop-blur-xl transition-colors duration-300 dark:border-slate-800/60 dark:bg-slate-950/90 dark:shadow-blue-900/20 sm:max-w-[400px]">
+      <DialogContent className="gap-0 overflow-hidden border border-border bg-popover/95 p-0 text-popover-foreground shadow-2xl shadow-black/20 backdrop-blur-xl transition-colors duration-300 dark:shadow-black/40 sm:max-w-[400px]">
         <DialogTitle className="sr-only">Sign in to RetroPick</DialogTitle>
         <DialogDescription className="sr-only">
           Continue with Google to create an embedded smart account, or open the wallet connection
           modal.
         </DialogDescription>
-        <div className="absolute left-0 top-0 z-10 h-1 w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500" />
+        <div className="absolute left-0 top-0 z-10 h-1 w-full bg-gradient-to-r from-primary via-accent-cyan to-primary" />
 
-        <div className="pointer-events-none absolute right-[-50px] top-[-50px] h-32 w-32 rounded-full bg-blue-400/10 blur-[40px] dark:bg-blue-500/10" />
-        <div className="pointer-events-none absolute bottom-[-50px] left-[-50px] h-32 w-32 rounded-full bg-indigo-400/10 blur-[40px] dark:bg-indigo-500/10" />
+        <div className="pointer-events-none absolute right-[-50px] top-[-50px] h-32 w-32 rounded-full bg-primary/15 blur-[40px] dark:bg-primary/20" />
+        <div className="pointer-events-none absolute bottom-[-50px] left-[-50px] h-32 w-32 rounded-full bg-accent-cyan/15 blur-[40px] dark:bg-accent-cyan/20" />
 
         <div className="relative z-10 p-6 pt-8">
           <CardHeader className="space-y-2 p-0 pb-6 text-center">
@@ -66,15 +80,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
               className="mx-auto mb-2"
             >
-              <div className="relative rounded-2xl border border-transparent bg-white p-1 shadow-lg shadow-blue-500/10 dark:border-slate-800 dark:bg-slate-900 dark:shadow-blue-500/20">
+              <div className="relative rounded-2xl border border-border bg-card p-1 shadow-lg shadow-primary/10 ring-1 ring-border/60 dark:shadow-primary/20">
                 <Logo className="h-12 w-12 rounded-xl" />
               </div>
             </motion.div>
 
-            <CardTitle className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+            <CardTitle className="text-xl font-bold tracking-tight text-card-foreground">
               Welcome Back
             </CardTitle>
-            <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               Sign in to access your dashboard
             </CardDescription>
           </CardHeader>
@@ -82,12 +96,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <div className="space-y-4">
             <Button
               variant="outline"
-              className="group h-10 w-full border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="group h-10 w-full border-border bg-secondary text-secondary-foreground shadow-sm transition-all duration-300 hover:bg-muted hover:text-foreground"
               onClick={handleGoogleLogin}
               disabled={isGoogleLoading}
             >
               <svg
-                className="mr-2 h-4 w-4 transition-transform group-hover:scale-110 dark:text-white"
+                className="mr-2 h-4 w-4 transition-transform group-hover:scale-110 text-foreground"
                 aria-hidden="true"
                 focusable="false"
                 xmlns="http://www.w3.org/2000/svg"
@@ -104,8 +118,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <div className="pt-2">
               <Button
                 variant="outline"
-                className="h-11 w-full border-2 border-dashed border-blue-200 bg-blue-50/30 text-sm font-medium text-blue-600 transition-all hover:scale-[1.01] hover:border-blue-300 hover:bg-blue-50/80 dark:border-blue-800 dark:bg-blue-900/10 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-900/20"
-                onClick={() => open()}
+                className="h-11 w-full border-2 border-dashed border-primary/35 bg-primary/5 text-sm font-medium text-primary transition-all hover:scale-[1.01] hover:border-primary/55 hover:bg-primary/10 dark:border-accent-cyan/45 dark:bg-accent-cyan/10 dark:text-accent-cyan dark:hover:border-accent-cyan/70 dark:hover:bg-accent-cyan/15"
+                onClick={handleWeb3Connect}
               >
                 <Icon name="wallet" className="mr-2 text-base" />
                 Connect Web3 Wallet
@@ -114,10 +128,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
         </div>
 
-        <div className="border-t border-slate-100 bg-slate-50/80 p-4 text-center dark:border-slate-800 dark:bg-slate-900/50">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+        <div className="border-t border-border bg-muted/40 p-4 text-center dark:bg-muted/25">
+          <p className="text-xs text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <span className="cursor-pointer font-bold text-blue-600 transition-colors hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
+            <span className="cursor-pointer font-semibold text-primary transition-colors hover:text-accent-cyan hover:underline dark:text-accent-cyan dark:hover:text-primary">
               Create account
             </span>
           </p>

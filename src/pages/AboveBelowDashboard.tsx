@@ -419,16 +419,7 @@ export default function AboveBelowDashboard() {
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-background text-foreground">
       <div className="relative flex-1">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.08),transparent_42%)] dark:bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.14),transparent_46%)]" />
-          <div className="dashboard-bg-stage absolute inset-x-0 bottom-0 h-[48rem] md:h-[44rem]">
-            <div className="dashboard-bg-mesh absolute inset-x-[-8%] bottom-[-8rem] h-[34rem] rounded-[50%] opacity-90 blur-[18px]" />
-            <div className="dashboard-bg-orb dashboard-bg-fast absolute left-[-2%] bottom-20 h-[18rem] w-[18rem] rounded-full bg-emerald-400/38 blur-[95px] dark:bg-emerald-400/25" />
-            <div className="dashboard-bg-orb dashboard-bg-slow absolute left-[18%] bottom-6 h-[22rem] w-[26rem] rounded-full bg-blue-500/34 blur-[110px] dark:bg-blue-500/24" />
-            <div className="dashboard-bg-orb absolute right-[8%] bottom-16 h-[20rem] w-[22rem] rounded-full bg-rose-400/26 blur-[110px] dark:bg-rose-400/18" />
-            <div className="dashboard-bg-band absolute left-1/2 bottom-24 h-40 w-[78%] max-w-[72rem] -translate-x-1/2 rounded-[999px] bg-gradient-to-r from-emerald-400/22 via-blue-300/28 to-rose-300/18 blur-[38px]" />
-            <div className="dashboard-bg-band dashboard-bg-band-reverse absolute left-1/2 bottom-10 h-32 w-[62%] max-w-[54rem] -translate-x-1/2 rounded-[999px] bg-gradient-to-r from-blue-300/16 via-emerald-400/22 to-rose-300/14 blur-[30px]" />
-            <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-background via-background/45 to-transparent" />
-          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsl(var(--primary)/0.1),transparent_55%)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-5%,hsl(var(--primary)/0.12),transparent_58%)]" />
         </div>
 
         <Header
@@ -438,7 +429,7 @@ export default function AboveBelowDashboard() {
           }}
         />
 
-        <main className="relative mx-auto max-w-[1440px] px-4 pb-14 pt-2 lg:px-8">
+        <main className="relative mx-auto max-w-[1440px] px-5 pb-16 pt-6 lg:px-10">
           {assetClass !== "crypto" ? (
             <p className="mb-2 text-center text-[11px] text-muted-foreground">
               Illustrative threshold rounds — reference data only; not on-chain settlement.

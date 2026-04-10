@@ -75,7 +75,7 @@ function KpiCard({
         className={cn(
           "mt-2 text-3xl font-semibold tracking-tight text-foreground",
           accent === "cyan" && "text-accent-cyan",
-          accent === "green" && "text-emerald-600 dark:text-emerald-400",
+          accent === "green" && "text-up",
         )}
       >
         {value}
@@ -97,7 +97,7 @@ const Portfolio = () => {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
 
-      <main className="mx-auto max-w-[1440px] px-4 pb-16 pt-3 lg:px-8">
+      <main className="mx-auto max-w-[1440px] px-5 pb-20 pt-6 lg:px-10">
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             label="Realized PnL"
@@ -174,7 +174,7 @@ const Portfolio = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-emerald-500/12 px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        <div className="rounded-2xl bg-up/12 px-4 py-2 text-sm font-semibold text-up">
                           {round.amount}
                         </div>
                         <button className="rounded-2xl bg-accent-cyan px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-background transition-opacity hover:opacity-90">
@@ -205,7 +205,7 @@ const Portfolio = () => {
                       </div>
                       <div className={cn("font-semibold text-foreground", entry.name === "You" && "text-accent-cyan")}>{entry.name}</div>
                     </div>
-                    <div className="font-semibold text-emerald-600 dark:text-emerald-400">{entry.pnl}</div>
+                    <div className="font-semibold text-up">{entry.pnl}</div>
                   </div>
                 ))}
               </div>

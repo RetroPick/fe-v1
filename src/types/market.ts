@@ -20,6 +20,8 @@ export interface Market {
   expiry?: string;
   isFeatured?: boolean;
   isBinary?: boolean;
+  /** `updown`: short-horizon Up/Down card with semicircular gauge; default is compact Yes/No. */
+  binaryPresentation?: "yesno" | "updown";
   oracleSource?: string;
   timeframe?: string;
   status?: string;

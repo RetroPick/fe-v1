@@ -89,6 +89,53 @@ function getDiscoveryMarkets(nowMs: number): DiscoveryMarket[] {
 
   const raw: Array<Omit<DiscoveryMarket, "countdownLabel"> & { endAtDate: Date }> = [
     {
+      id: "btc-5m-updown",
+      title: "BTC 5 Minute Up or Down",
+      description: "Short-horizon directional contract: next 5-minute candle close vs open.",
+      category: "Crypto",
+      primitive: "Directional",
+      marketType: "5 minute",
+      icon: "currency_bitcoin",
+      iconBg: "bg-orange-500",
+      iconColor: "text-white",
+      outcomes: [
+        { id: "up", label: "Up", probability: 51 },
+        { id: "down", label: "Down", probability: 49 },
+      ],
+      volume: "$2.1M",
+      totalPool: "$890K",
+      expiry: "5m",
+      isBinary: true,
+      binaryPresentation: "updown",
+      oracleSource: "Exchange index",
+      timeframe: "5 MIN",
+      status: "Open",
+      roundId: "BTC-5M-UD",
+      lockRule: "Window locks at candle open.",
+      closeRule: "Resolves on 5m candle close vs open.",
+      resolutionFormula: "Up wins if close >= open for the window.",
+      invalidationRule: "Refund if feed unavailable.",
+      settlementLabel: "Machine-settled on Solana",
+      assetSymbol: "BTC",
+      assetName: "Bitcoin",
+      timeBucket: "Today",
+      schedule: "Daily",
+      narrativeFamily: "Above Daily Open",
+      stateCategory: "Open",
+      thresholdLabel: "5m open",
+      thresholdValue: 0,
+      currentPrice: 97200,
+      distancePct: 0,
+      endAtDate: buildDate(base, 0.1),
+      endAt: "",
+      yesPoolValue: 452000,
+      noPoolValue: 438000,
+      isFeaturedDiscovery: true,
+      featuredNote: "High-turnover short window — Polymarket-style directional card.",
+      ruleText: "Up wins if the 5m candle closes at or above its open.",
+      heroTag: "5m",
+    },
+    {
       id: "btc-daily-yesterday-close",
       title: "BTC at or above yesterday close by today close",
       description: "Daily threshold contract built for the habit loop: one clear level, one close, one deterministic answer.",
@@ -1009,8 +1056,8 @@ function DiscoverSidebar({
   const list = trendingMarkets.slice(0, 7);
 
   return (
-    <aside className="w-full space-y-5 lg:sticky lg:top-28 lg:w-80">
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <aside className="w-full space-y-6 lg:sticky lg:top-28">
+      <div className="rounded-xl bg-card p-5 shadow-none dark:ring-1 dark:ring-white/[0.04]">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           Crypto thresholds
         </p>
@@ -1021,7 +1068,7 @@ function DiscoverSidebar({
         <button
           type="button"
           onClick={onOpenUpDown}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90"
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:brightness-110"
         >
           Trade now
           <ChevronRight className="size-4 opacity-80" aria-hidden />
@@ -1029,15 +1076,15 @@ function DiscoverSidebar({
       </div>
 
       {/* Trending — numbered rows, question + level, % + skew */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="flex items-center justify-between border-b border-border/70 px-3 py-2.5">
+      <div className="overflow-hidden rounded-xl bg-card shadow-none dark:ring-1 dark:ring-white/[0.04]">
+        <div className="flex items-center justify-between border-b border-border/40 px-4 py-3.5 dark:border-white/[0.06]">
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-semibold text-foreground">Trending</span>
             <TrendingUp className="size-3.5 text-primary" aria-hidden />
           </div>
           <ChevronRight className="size-4 text-muted-foreground/60" aria-hidden />
         </div>
-        <ul className="divide-y divide-border/60">
+        <ul className="divide-y divide-border/50 dark:divide-white/[0.06]">
           {list.map((market, index) => {
             const yesPct = yesPercentFromPools(market);
             const yesProb = market.outcomes.find((o) => o.id === "yes")?.probability ?? yesPct;
@@ -1048,7 +1095,7 @@ function DiscoverSidebar({
                 <button
                   type="button"
                   onClick={() => onOpen(market)}
-                  className="flex w-full gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/40"
+                  className="flex w-full gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/50"
                 >
                   <span className="w-5 shrink-0 pt-0.5 text-center text-[13px] font-medium tabular-nums text-muted-foreground">
                     {index + 1}
@@ -1131,17 +1178,17 @@ const MarketsAll = () => {
         }}
       />
 
-      <main className="mx-auto max-w-[1440px] px-4 pb-16 pt-4 lg:px-8">
-        <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
+      <main className="mx-auto max-w-[1440px] px-5 pb-20 pt-8 lg:px-10">
+        <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
           <section className="min-w-0 flex-1">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-4">
               {filteredMarkets.map((market) => (
                 <MarketCard key={market.id} market={market} href={UPDOWN_CRYPTO_HREF} />
               ))}
             </div>
           </section>
 
-          <div className="shrink-0 lg:w-80">
+          <div className="shrink-0 lg:w-[min(100%,20rem)]">
             <DiscoverSidebar
               trendingMarkets={trendingMarkets}
               onOpenUpDown={openUpDownMarket}

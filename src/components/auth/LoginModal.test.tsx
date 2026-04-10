@@ -3,15 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import LoginModal from "./LoginModal";
 
-const openAppKitMock = vi.fn();
+const openAppKitModalMock = vi.fn();
 const executeSocialLoginMock = vi.fn();
 const toastMock = vi.fn();
 const useAppKitAccountMock = vi.fn();
 
+vi.mock("@/lib/openAppKitModal", () => ({
+  openAppKitModal: (...args: unknown[]) => openAppKitModalMock(...args),
+}));
+
 vi.mock("@reown/appkit/react", () => ({
-  useAppKit: () => ({
-    open: (...args: unknown[]) => openAppKitMock(...args),
-  }),
   useAppKitAccount: () => useAppKitAccountMock(),
 }));
 
@@ -25,7 +26,8 @@ vi.mock("@/components/ui/use-toast", () => ({
 
 describe("LoginModal", () => {
   beforeEach(() => {
-    openAppKitMock.mockReset();
+    openAppKitModalMock.mockReset();
+    openAppKitModalMock.mockResolvedValue(undefined);
     executeSocialLoginMock.mockReset();
     toastMock.mockReset();
     useAppKitAccountMock.mockReset();
@@ -35,12 +37,17 @@ describe("LoginModal", () => {
     });
   });
 
-  it("opens AppKit when Connect Web3 Wallet is clicked", () => {
-    render(<LoginModal isOpen onClose={vi.fn()} />);
+  it("opens AppKit when Connect Web3 Wallet is clicked", async () => {
+    const onClose = vi.fn();
+    render(<LoginModal isOpen onClose={onClose} />);
 
     fireEvent.click(screen.getByRole("button", { name: /connect web3 wallet/i }));
 
-    expect(openAppKitMock).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(openAppKitModalMock).toHaveBeenCalled();
+    });
   });
 
   it("starts Google social login from Continue with Google", async () => {

@@ -25,6 +25,8 @@
 
 <body>
   <div id="root"></div>
+  <!-- Host for Reown / WalletConnect UI; ensures a mount point exists even if dynamic injection races the bundle -->
+  <w3m-modal></w3m-modal>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
