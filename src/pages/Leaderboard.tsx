@@ -151,7 +151,7 @@ const Leaderboard = () => {
     const rest = leaderboardData.slice(3);
 
     return (
-        <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 relative overflow-hidden">
+        <div className="relative min-h-screen overflow-x-clip bg-background font-sans text-foreground selection:bg-primary/30">
             <Header />
 
             {/* Background Effects */}

@@ -31,7 +31,8 @@ export const translations = {
             ai: "AI",
             commodities: "Commodities",
             space: "Space",
-            corporate: "Corporate"
+            corporate: "Corporate",
+            threshold: "Threshold"
         },
         home: {
             load_more: "Load More Markets",
@@ -150,7 +151,8 @@ export const translations = {
             ai: "AI",
             commodities: "Komoditas",
             space: "Angkasa",
-            corporate: "Korporat"
+            corporate: "Korporat",
+            threshold: "Ambang"
         },
         home: {
             load_more: "Muat Lebih Banyak",
@@ -268,7 +270,8 @@ export const translations = {
             ai: "人工智能",
             commodities: "商品",
             space: "太空",
-            corporate: "企业"
+            corporate: "企业",
+            threshold: "阈值"
         },
         home: {
             load_more: "加载更多",
@@ -386,7 +389,8 @@ export const translations = {
             ai: "एआई",
             commodities: "कमोडिटीज",
             space: "अंतरिक्ष",
-            corporate: "कॉर्पोरेट"
+            corporate: "कॉर्पोरेट",
+            threshold: "थ्रेशोल्ड"
         },
         home: {
             load_more: "और लोड करें",
@@ -504,7 +508,8 @@ export const translations = {
             ai: "IA",
             commodities: "Materias Primas",
             space: "Espacio",
-            corporate: "Corporativo"
+            corporate: "Corporativo",
+            threshold: "Umbral"
         },
         home: {
             load_more: "Cargar Más",

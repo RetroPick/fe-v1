@@ -96,7 +96,7 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
   );
 
   return (
-    <header className="sticky inset-x-0 top-0 z-50 border-b border-border/40 bg-background/90 backdrop-blur-md dark:border-white/[0.06] dark:bg-background/95">
+    <header className="sticky inset-x-0 top-0 z-50 shrink-0 border-b border-border/40 bg-background/90 backdrop-blur-md dark:border-white/[0.06] dark:bg-background/95">
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8">
         <div className="flex min-h-11 flex-nowrap items-center gap-2 py-1.5 sm:min-h-12 sm:gap-3 sm:py-2">
           <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
@@ -148,9 +148,11 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
             </Suspense>
           </div>
         </div>
+      </div>
 
-        {/* Full-bleed within max-width container so border + tint align with header edges (no -mx gaps). */}
-        <div className="-mx-5 border-t border-border/40 bg-muted/40 px-5 py-1.5 sm:-mx-8 sm:px-8 dark:border-white/[0.08] dark:bg-card/40">
+      {/* Viewport-wide strip so border + tint span edge-to-edge (not clipped by max-width). */}
+      <div className="w-full min-w-0 border-t border-border/40 bg-muted/40 py-1.5 dark:border-white/[0.08] dark:bg-card/40">
+        <div className="mx-auto max-w-[1440px] px-5 sm:px-8">
           <nav
             className="mb-1.5 w-full min-w-0 overflow-x-auto no-scrollbar overscroll-contain lg:mb-0 lg:hidden"
             aria-label="Main navigation"
@@ -237,8 +239,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       className={cn(
                         "grid min-h-9 min-w-[132px] shrink-0 grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-1.5 rounded-lg border px-1.5 py-1 text-left transition-all duration-200 sm:min-w-[148px] sm:gap-2 sm:px-2 sm:py-1.5",
                         discoveryNav.assetFilter === asset.symbol
-                          ? "border-slate-900/15 bg-white shadow-[0_10px_18px_-16px_rgba(15,23,42,0.28)] dark:border-primary/30 dark:bg-card dark:shadow-none"
-                          : "border-white/60 bg-white/65 hover:border-slate-900/10 hover:bg-white/90 dark:border-border dark:bg-secondary/80 dark:hover:border-primary/20 dark:hover:bg-card",
+                          ? "border-border bg-card shadow-[0_10px_18px_-16px_rgba(15,23,42,0.12)] dark:border-primary/30 dark:bg-card dark:shadow-none"
+                          : "border-border/50 bg-card/70 hover:border-border hover:bg-card dark:border-border dark:bg-secondary/80 dark:hover:border-primary/20 dark:hover:bg-card",
                       )}
                       aria-label={`Filter discovery by ${asset.name}`}
                     >
@@ -312,8 +314,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                         className={cn(
                           "grid min-h-9 min-w-[132px] shrink-0 grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-1.5 rounded-lg border px-1.5 py-1 text-left transition-all duration-200 sm:min-w-[148px] sm:gap-2 sm:px-2 sm:py-1.5",
                           selectedSymbol === asset.symbol
-                            ? "border-slate-900/15 bg-white shadow-[0_10px_18px_-16px_rgba(15,23,42,0.28)] dark:border-white/15 dark:bg-slate-900"
-                            : "border-white/60 bg-white/65 hover:border-slate-900/10 hover:bg-white/90 dark:border-white/8 dark:bg-slate-900/55 dark:hover:border-white/14 dark:hover:bg-slate-900/80",
+                            ? "border-border bg-card shadow-[0_10px_18px_-16px_rgba(15,23,42,0.12)] dark:border-white/15 dark:bg-slate-900"
+                            : "border-border/50 bg-card/70 hover:border-border hover:bg-card dark:border-white/8 dark:bg-slate-900/55 dark:hover:border-white/14 dark:hover:bg-slate-900/80",
                         )}
                         aria-label={`Select ${asset.name}`}
                       >
@@ -364,8 +366,8 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       className={cn(
                         "grid min-h-9 min-w-[132px] shrink-0 grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-1.5 rounded-lg border px-1.5 py-1 text-left transition-all duration-200 sm:min-w-[148px] sm:gap-2 sm:px-2 sm:py-1.5",
                         selectedSymbol === asset.symbol
-                          ? "border-slate-900/15 bg-white shadow-[0_10px_18px_-16px_rgba(15,23,42,0.28)] dark:border-white/15 dark:bg-slate-900"
-                          : "border-white/60 bg-white/65 hover:border-slate-900/10 hover:bg-white/90 dark:border-white/8 dark:bg-slate-900/55 dark:hover:border-white/14 dark:hover:bg-slate-900/80",
+                          ? "border-border bg-card shadow-[0_10px_18px_-16px_rgba(15,23,42,0.12)] dark:border-white/15 dark:bg-slate-900"
+                          : "border-border/50 bg-card/70 hover:border-border hover:bg-card dark:border-white/8 dark:bg-slate-900/55 dark:hover:border-white/14 dark:hover:bg-slate-900/80",
                       )}
                       aria-label={`Select ${asset.name}`}
                     >

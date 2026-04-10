@@ -12,7 +12,7 @@ export const ThemeWrapper: React.FC<ThemeWrapperProps> = ({ category, children }
     const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
     // Determine Theme Classes
-    let bgClass = isDark ? "bg-[#111116]" : "bg-slate-50";
+    let bgClass = isDark ? "bg-[#111116]" : "bg-background";
     let accentClass = "";
     let effects = null;
 
@@ -20,7 +20,7 @@ export const ThemeWrapper: React.FC<ThemeWrapperProps> = ({ category, children }
         case 'sports':
             bgClass = isDark
                 ? "bg-[#0a0a0c] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-green-900/20 via-purple-900/10 to-[#0a0a0c]"
-                : "bg-green-50/30 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-green-200/20 via-white to-green-50/30";
+                : "bg-green-50/30 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-green-200/20 via-background to-green-50/30";
             accentClass = isDark ? "border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.15)]" : "border-green-200 shadow-sm";
             effects = (
                 <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -84,7 +84,7 @@ export const ThemeWrapper: React.FC<ThemeWrapperProps> = ({ category, children }
             );
             break;
         default:
-            bgClass = isDark ? "bg-[#111116]" : "bg-white";
+            bgClass = isDark ? "bg-[#111116]" : "bg-background";
             break;
     }
 

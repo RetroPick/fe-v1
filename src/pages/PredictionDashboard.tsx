@@ -344,18 +344,18 @@ export default function PredictionDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-background text-foreground">
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-background text-foreground">
+      <Header
+        marketFamilyAssetClassNav={{
+          basePath: "/app/markets/updown",
+          activeClass: assetClass,
+        }}
+      />
+
       <div className="relative flex-1">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsl(var(--primary)/0.1),transparent_55%)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-5%,hsl(var(--primary)/0.12),transparent_58%)]" />
         </div>
-
-        <Header
-          marketFamilyAssetClassNav={{
-            basePath: "/app/markets/updown",
-            activeClass: assetClass,
-          }}
-        />
 
         <main className="relative mx-auto max-w-[1440px] px-5 pb-16 pt-6 lg:px-10">
           {assetClass !== "crypto" ? (

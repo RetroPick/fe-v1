@@ -1167,7 +1167,7 @@ const MarketsAll = () => {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
       <Header
         discoveryNav={{
           tabs: TABS,
@@ -1178,12 +1178,14 @@ const MarketsAll = () => {
         }}
       />
 
-      <main className="mx-auto max-w-[1440px] px-5 pb-20 pt-8 lg:px-10">
+      <main className="mx-auto max-w-[1440px] px-5 pb-20 pt-10 lg:px-10 lg:pt-12">
         <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
           <section className="min-w-0 flex-1">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-2 lg:gap-6 xl:grid-cols-3 xl:gap-5">
               {filteredMarkets.map((market) => (
-                <MarketCard key={market.id} market={market} href={UPDOWN_CRYPTO_HREF} />
+                <div key={market.id} className="h-full min-h-0">
+                  <MarketCard market={market} href={UPDOWN_CRYPTO_HREF} />
+                </div>
               ))}
             </div>
           </section>
