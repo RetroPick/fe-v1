@@ -1,35 +1,20 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowDownRight,
-  CalendarRange,
-  ChevronRight,
-  ShieldCheck,
-  Timer,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
+import { ArrowUpRight, ChevronRight, TrendingUp } from "lucide-react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { AssetLogo } from "@/components/AssetLogo";
-import { useAssetDetail } from "@/hooks/useAssetDetail";
-import { FALLBACK_ASSETS } from "@/lib/market-data/coingecko";
-import { CandlePoint } from "@/lib/market-data/types";
 import { cn } from "@/lib/utils";
 import { Market } from "@/types/market";
 
 type DiscoveryTab = "All" | "Today" | "This Week" | "Ending Soon" | "Featured" | "My Positions";
 type AssetFilter = "All assets" | string;
-type ScheduleFilter = "All schedules" | "Daily" | "Weekly";
 type NarrativeFilter =
   | "All narratives"
   | "Above Yesterday Close"
   | "Above Daily Open"
   | "Below Weekly Open"
   | "Weekly Breakout Watch";
-type StateFilter = "All states" | "Open" | "Locked" | "Resolving";
-type SortFilter = "Featured first" | "Ending soon" | "Closest to threshold" | "Largest pool";
-type CampaignAssetSymbol = "BTC" | "ETH" | "SOL" | "BNB" | "XRP" | "DOGE" | "ADA" | "LINK";
 
 type DiscoveryMarket = Market & {
   assetSymbol: "BTC" | "ETH" | "SOL";
@@ -37,7 +22,7 @@ type DiscoveryMarket = Market & {
   timeBucket: "Today" | "This Week" | "Ending Soon";
   schedule: "Daily" | "Weekly";
   narrativeFamily: Exclude<NarrativeFilter, "All narratives">;
-  stateCategory: Exclude<StateFilter, "All states">;
+  stateCategory: "Open" | "Locked" | "Resolving";
   thresholdLabel: string;
   thresholdValue: number;
   currentPrice: number;
@@ -53,61 +38,26 @@ type DiscoveryMarket = Market & {
 };
 
 const TABS: DiscoveryTab[] = ["All", "Today", "This Week", "Ending Soon", "Featured", "My Positions"];
-const ASSET_FILTERS: AssetFilter[] = ["All assets", "BTC", "ETH", "SOL"];
-const SCHEDULE_FILTERS: ScheduleFilter[] = ["All schedules", "Daily", "Weekly"];
-const NARRATIVE_FILTERS: NarrativeFilter[] = [
-  "All narratives",
-  "Above Yesterday Close",
-  "Above Daily Open",
-  "Below Weekly Open",
-  "Weekly Breakout Watch",
-];
-const STATE_FILTERS: StateFilter[] = ["All states", "Open", "Locked", "Resolving"];
-const SORT_FILTERS: SortFilter[] = ["Featured first", "Ending soon", "Closest to threshold", "Largest pool"];
-const FEATURED_MARKET_IDS = [
-  "btc-daily-yesterday-close",
-  "sol-daily-yesterday-close",
-  "btc-weekly-open",
-  "sol-weekly-open",
-  "eth-daily-yesterday-close",
-  "eth-weekly-breakout",
-];
 
 const discoveryStatusStyles: Record<
   DiscoveryMarket["stateCategory"],
   {
     badge: string;
-    chip: string;
-    progress: string;
   }
 > = {
   Open: {
-    badge: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-    chip: "text-emerald-300",
-    progress: "from-emerald-400 via-cyan-400 to-teal-300",
+    badge: "border-[#1f4e39] bg-[#193629] text-[#7df0b6]",
   },
   Locked: {
-    badge: "border-amber-500/30 bg-amber-500/10 text-amber-300",
-    chip: "text-amber-300",
-    progress: "from-amber-400 via-orange-400 to-amber-300",
+    badge: "border-[#5b4720] bg-[#3b3120] text-[#f7cf6a]",
   },
   Resolving: {
-    badge: "border-sky-500/30 bg-sky-500/10 text-sky-300",
-    chip: "text-sky-300",
-    progress: "from-sky-400 via-blue-400 to-cyan-300",
+    badge: "border-[#1f4764] bg-[#163246] text-[#7bc7ff]",
   },
 };
 
 function buildDate(base: number, offsetHours: number) {
   return new Date(base + offsetHours * 60 * 60 * 1000);
-}
-
-function formatCurrency(value: number, digits = 0) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: digits,
-  }).format(value);
 }
 
 function formatCompactCurrency(value: number) {
@@ -132,97 +82,19 @@ function formatCountdown(targetIso: string, nowMs: number) {
   return `${minutes}m`;
 }
 
-function formatMiniPrice(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: value >= 1000 ? 0 : 2,
-  }).format(value);
+function yesPercentFromPools(market: DiscoveryMarket) {
+  const t = market.yesPoolValue + market.noPoolValue;
+  if (t <= 0) return 50;
+  return Math.round((market.yesPoolValue / t) * 100);
 }
 
-function formatMiniMinuteLabel(unixSeconds: number) {
-  return new Date(unixSeconds * 1000).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "UTC",
-  });
-}
-
-function CampaignMiniChart({
-  candles,
-  livePrice,
-}: {
-  candles: CandlePoint[];
-  livePrice?: number;
-}) {
-  const chartCandles = candles.slice(-10);
-
-  if (chartCandles.length === 0) {
-    return (
-      <div className="flex h-[190px] items-center justify-center rounded-[26px] border border-border/60 bg-background/75 text-sm font-medium text-muted-foreground">
-        Loading latest candles...
-      </div>
-    );
-  }
-
-  const values = chartCandles.flatMap((candle) => [candle.high, candle.low]);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const rawRange = Math.max(max - min, 0);
-  const referencePrice = chartCandles[chartCandles.length - 1]?.close ?? max;
-  const observedPct = referencePrice > 0 ? rawRange / referencePrice : 0;
-  const paddingPct = observedPct < 0.0008 ? 0.00008 : observedPct < 0.0025 ? 0.00014 : 0.00024;
-  const padding = Math.max(rawRange * 0.14, referencePrice * paddingPct);
-  const domainMin = min - padding;
-  const domainMax = max + padding;
-  const range = Math.max(domainMax - domainMin, referencePrice * 0.0002, 0.000001);
-  const latestCandle = chartCandles[chartCandles.length - 1];
-  const latestPrice = livePrice ?? latestCandle.close;
-  const delta = latestPrice - chartCandles[0].open;
-  const deltaPct = chartCandles[0].open ? (delta / chartCandles[0].open) * 100 : 0;
-
-  return (
-    <div className="rounded-[26px] border border-border/60 bg-background/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Last 10 candles</div>
-          <div className="mt-1 text-[24px] font-black tracking-[-0.04em] text-foreground">{formatMiniPrice(latestPrice)}</div>
-        </div>
-        <div className={cn("rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em]", delta >= 0 ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-300" : "bg-rose-500/12 text-rose-600 dark:text-rose-300")}>
-          {delta >= 0 ? "+" : ""}{deltaPct.toFixed(2)}%
-        </div>
-      </div>
-
-      <div className="mt-4 flex h-[118px] items-end gap-1 overflow-hidden rounded-[20px] bg-[linear-gradient(to_top,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:100%_24px] px-2 pb-6 pt-2">
-        {chartCandles.map((candle, index) => {
-          const bodyTop = ((domainMax - Math.max(candle.open, candle.close)) / range) * 100;
-          const bodyHeight = Math.max((Math.abs(candle.close - candle.open) / range) * 100, 10);
-          const wickTop = ((domainMax - candle.high) / range) * 100;
-          const wickHeight = Math.max(((candle.high - candle.low) / range) * 100, 16);
-          const rising = candle.close >= candle.open;
-
-          return (
-            <div key={candle.time} className="relative h-full min-w-0 flex-1">
-              <div
-                className={cn("absolute left-1/2 w-[3px] -translate-x-1/2 rounded-full", rising ? "bg-emerald-500/80" : "bg-rose-500/80")}
-                style={{ top: `${wickTop}%`, height: `${wickHeight}%` }}
-              />
-              <div
-                className={cn("absolute left-1/2 min-h-[8px] w-[72%] -translate-x-1/2 rounded-[6px] border shadow-[0_12px_26px_-18px_rgba(15,23,42,0.6)]", rising ? "border-emerald-400/40 bg-gradient-to-b from-emerald-300 to-emerald-500" : "border-rose-400/40 bg-gradient-to-b from-rose-300 to-rose-500")}
-                style={{ top: `${bodyTop}%`, height: `${bodyHeight}%` }}
-              />
-              {(index === 0 || index === chartCandles.length - 1) ? (
-                <div className={cn("absolute bottom-0 translate-y-5 text-[9px] font-semibold text-muted-foreground", index === 0 ? "left-0" : "right-0")}>
-                  {formatMiniMinuteLabel(candle.time)}
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+function thresholdSubtitle(market: DiscoveryMarket) {
+  const v = market.thresholdValue;
+  const price =
+    v >= 1000
+      ? `$${v.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+      : `$${v.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  return `${price} · ${market.thresholdLabel}`;
 }
 
 function getDiscoveryMarkets(nowMs: number): DiscoveryMarket[] {
@@ -1140,7 +1012,7 @@ function getDiscoveryMarkets(nowMs: number): DiscoveryMarket[] {
   }));
 }
 
-function DiscoveryCard({
+function DiscoveryMarketCard({
   market,
   onOpen,
 }: {
@@ -1150,337 +1022,218 @@ function DiscoveryCard({
   const totalPool = market.yesPoolValue + market.noPoolValue;
   const yesShare = (market.yesPoolValue / totalPool) * 100;
   const noShare = 100 - yesShare;
+  const yesPct = Math.round(yesShare);
+  const noPct = Math.round(noShare);
   const style = discoveryStatusStyles[market.stateCategory];
-  const ctaLabel =
-    market.stateCategory === "Open" ? "Yes / No" : market.stateCategory === "Locked" ? "Track result" : "View details";
 
   return (
     <article
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen(market)}
-      className="group flex h-full flex-col justify-between rounded-[24px] border border-border/60 bg-card/88 p-3.5 text-left text-card-foreground shadow-[0_24px_60px_-45px_rgba(15,23,42,0.24)] backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:bg-card dark:shadow-[0_24px_60px_-45px_rgba(2,6,23,0.72)]"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(market);
+        }
+      }}
+      className={cn(
+        "group relative flex cursor-pointer flex-col overflow-hidden rounded-[26px] border text-left outline-none transition-all duration-200",
+        "border-[#222b35] bg-[#161c22] text-white shadow-[0_18px_40px_-28px_rgba(0,0,0,0.65)]",
+        "hover:-translate-y-0.5 hover:border-[#2f3a46] hover:bg-[#192028] hover:shadow-[0_28px_60px_-32px_rgba(0,0,0,0.78)]",
+        "focus-visible:ring-2 focus-visible:ring-emerald-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+      )}
     >
-      <div>
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <AssetLogo symbol={market.assetSymbol} className="size-9" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{market.assetSymbol}</span>
-              <span className="h-1 w-1 rounded-full bg-border" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{market.narrativeFamily}</span>
-            </div>
-            <div className="mt-2 line-clamp-2 text-[15px] font-semibold leading-6 text-foreground">
-              {market.title}
+      <div className="relative flex flex-1 flex-col p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <AssetLogo symbol={market.assetSymbol} className="size-11 shrink-0 rounded-xl border border-white/8 bg-white/5 p-1.5" />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="truncate text-sm font-semibold tracking-tight text-white">{market.assetName}</span>
+                <span className="text-xs font-semibold text-white/45">{market.assetSymbol}</span>
+                <span
+                  className={cn(
+                    "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                    style.badge,
+                  )}
+                >
+                  {market.stateCategory}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[11px] font-medium tabular-nums text-white/48 sm:text-xs">
+                {market.countdownLabel}
+              </p>
             </div>
           </div>
+          <span
+            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-white/8 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/62"
+            title="Settled on Solana"
+          >
+            <span className="size-1.5 rounded-full bg-gradient-to-br from-[#9945FF] to-[#14F195]" aria-hidden />
+            Solana
+          </span>
+        </div>
 
-          <div className="flex gap-1.5">
-            <span className="rounded-full border border-border/60 bg-background/80 px-2 py-0.5 text-[8px] font-bold uppercase text-muted-foreground">{market.schedule}</span>
-            <span className={cn("rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase", style.badge)}>{market.stateCategory}</span>
+        <h3 className="mt-4 line-clamp-2 text-[15px] font-semibold leading-snug tracking-tight text-white sm:text-[17px]">
+          {market.title}
+        </h3>
+        <p className="mt-2 line-clamp-1 text-sm text-white/50">
+          {market.narrativeFamily}
+        </p>
+
+        <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/6 bg-black/10 px-3 py-2">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/36">Chance</p>
+            <p className="mt-1 text-lg font-bold tabular-nums text-white">{yesPct}%</p>
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-[18px] border border-border/50 bg-background/55 p-3">
-          <MetricCell label={market.thresholdLabel}>
-            {formatCurrency(market.thresholdValue, market.thresholdValue >= 1000 ? 0 : 2)}
-          </MetricCell>
-          <MetricCell label="Current Price">
-            {formatCurrency(market.currentPrice, market.currentPrice >= 1000 ? 0 : 2)}
-          </MetricCell>
-          <MetricCell label="Ends In" className={market.timeBucket === "Ending Soon" ? "text-rose-400" : undefined}>
-            {market.countdownLabel}
-          </MetricCell>
-          <MetricCell label="Total Pool">{formatCompactCurrency(totalPool)}</MetricCell>
-        </div>
-
-        <div className="mt-3">
-          <div className="flex h-[4px] overflow-hidden rounded-full bg-border/70 dark:bg-white/10">
+          <div className="flex h-2.5 w-28 overflow-hidden rounded-full bg-white/10">
             <div
-              style={{ width: `${yesShare}%` }}
-              className={cn("h-full rounded-full bg-gradient-to-r", style.progress)}
+              className="h-full bg-[#22c55e] transition-[width] duration-300"
+              style={{ width: `${yesPct}%` }}
             />
             <div
-              className="h-full bg-gradient-to-r from-rose-500 via-red-500 to-red-600"
-              style={{ width: `${100 - yesShare}%` }}
+              className="h-full bg-[#ef4444] transition-[width] duration-300"
+              style={{ width: `${noPct}%` }}
             />
           </div>
-          <div className="mt-2 flex items-center justify-between text-[10px] font-semibold">
-            <span className="text-emerald-500 dark:text-emerald-400">{Math.round(yesShare)}% YES</span>
-            <span className="text-rose-500 dark:text-rose-400">{Math.round(noShare)}% NO</span>
-          </div>
         </div>
-      </div>
 
-      <div className="mt-4 border-t border-border/50 pt-3">
-        {market.stateCategory === "Open" ? (
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => onOpen(market)} className="rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-300 py-1.5 text-[10px] font-black text-white transition hover:brightness-105">
-              YES
-            </button>
-            <button onClick={() => onOpen(market)} className="rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-red-600 py-1.5 text-[10px] font-black text-white transition hover:brightness-105">
-              NO
-            </button>
-          </div>
-        ) : (
-          <button onClick={() => onOpen(market)} className="w-full rounded-2xl border border-border/70 bg-background/75 py-1.5 text-[10px] font-bold text-foreground transition hover:bg-background">
-            {ctaLabel}
+        <div className="mt-4 grid grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpen(market);
+            }}
+            className="rounded-2xl border border-[#1f4e39] bg-[#193629] px-3 py-3 text-left transition-colors hover:border-[#2b6b4f] hover:bg-[#1f4231]"
+          >
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6dd3a1]">Yes</span>
+            <span className="mt-1 block text-lg font-bold tabular-nums text-[#7df0b6]">{yesPct}%</span>
           </button>
-        )}
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpen(market);
+            }}
+            className="rounded-2xl border border-[#5a2629] bg-[#3b2427] px-3 py-3 text-left transition-colors hover:border-[#773439] hover:bg-[#47292d]"
+          >
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#ff7f84]">No</span>
+            <span className="mt-1 block text-lg font-bold tabular-nums text-[#ff9fa3]">{noPct}%</span>
+          </button>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3">
+          <div>
+            <span className="block text-sm font-medium text-white/78">{market.volume} Vol.</span>
+            <span className="mt-0.5 block text-xs text-white/38">{thresholdSubtitle(market)}</span>
+          </div>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/78 transition-colors group-hover:text-white">
+            View market
+            <ArrowUpRight className="size-3.5 opacity-70" aria-hidden />
+          </span>
+        </div>
       </div>
     </article>
   );
 }
 
-function MetricCell({
-  label,
-  children,
-  className,
-}: {
-  label: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div>
-      <div className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{label}</div>
-      <div className={cn("mt-0.5 text-[12px] font-bold text-foreground", className)}>{children}</div>
-    </div>
-  );
-}
-
-function MarketSection({
-  title,
-  subtitle,
-  icon,
-  markets,
-  onOpen,
-}: {
-  title: string;
-  subtitle: string;
-  icon: ReactNode;
-  markets: DiscoveryMarket[];
-  onOpen: (market: DiscoveryMarket) => void;
-}) {
-  if (markets.length === 0) return null;
-
-  return (
-    <section>
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h2 className="flex items-center gap-2 text-xl font-bold text-foreground">
-            <span className="text-primary">{icon}</span>
-            {title}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-        </div>
-        <button className="text-sm font-semibold text-primary hover:underline">View all</button>
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {markets.map((market) => (
-          <DiscoveryCard key={market.id} market={market} onOpen={onOpen} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function CompactMetric({
-  label,
-  children,
-  className,
-}: {
-  label: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div>
-      <div className="text-[11px] text-white/38">{label}</div>
-      <div className={cn("mt-0.5 text-[12px] font-semibold text-white", className)}>{children}</div>
-    </div>
-  );
-}
-
-function SideList({
-  title,
-  items,
-  variant,
-}: {
-  title: string;
-  items: DiscoveryMarket[];
-  variant: "new" | "volume";
-}) {
-  if (items.length === 0) return null;
-
-  return (
-    <section>
-      <h3 className="text-[15px] font-semibold tracking-tight text-foreground">{title}</h3>
-      <div className="mt-3 space-y-2">
-        {items.map((market, index) => {
-          const totalPool = market.yesPoolValue + market.noPoolValue;
-          const yesLean = Math.round((market.yesPoolValue / totalPool) * 100);
-          const metric = variant === "new" ? `${Math.max(...market.outcomes.map((o) => o.probability))}%` : formatCompactCurrency(totalPool);
-
-          return (
-            <button
-              key={market.id}
-              className="w-full rounded-[18px] border border-transparent px-3 py-2.5 text-left transition-all duration-200 hover:border-border/60 hover:bg-muted/45"
-              type="button"
-            >
-              <div className="grid grid-cols-[14px_minmax(0,1fr)_auto] gap-3">
-                <div className="pt-0.5 text-[12px] font-semibold text-muted-foreground">{index + 1}</div>
-                <div className="min-w-0">
-                  <div className="line-clamp-2 text-[13px] font-semibold leading-5 text-foreground">{market.title}</div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">{market.assetName}</div>
-                  <div className="mt-2 flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                    <span>{market.countdownLabel}</span>
-                    <span>{market.schedule}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[13px] font-semibold text-foreground">{metric}</div>
-                  <div className="mt-1 flex items-center justify-end gap-1 text-[10px] font-semibold text-emerald-500 dark:text-emerald-400">
-                    <TrendingUp className="size-3.5" />
-                    <span>{yesLean}</span>
-                  </div>
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function FeaturedStrip({
-  markets,
-  onOpen,
-}: {
-  markets: DiscoveryMarket[];
-  onOpen: (market: DiscoveryMarket) => void;
-}) {
-  if (markets.length === 0) return null;
-
-  return (
-    <section className="mt-8">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h2 className="flex items-center gap-2 text-xl font-bold text-foreground">
-            <span className="text-primary">
-              <ShieldCheck className="size-5" />
-            </span>
-            Featured Thresholds
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            High-signal threshold stories placed first, before the deeper market shelves.
-          </p>
-        </div>
-        <button className="text-sm font-semibold text-primary hover:underline">View all</button>
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {markets.map((market) => (
-          <DiscoveryCard key={market.id} market={market} onOpen={onOpen} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function DiscoverSidebar({
   trendingMarkets,
-  highestVolumeMarkets,
   onOpenUpDown,
-  campaignAsset,
+  onOpen,
 }: {
   trendingMarkets: DiscoveryMarket[];
-  highestVolumeMarkets: DiscoveryMarket[];
   onOpenUpDown: () => void;
-  campaignAsset: CampaignAssetSymbol;
+  onOpen: (market: DiscoveryMarket) => void;
 }) {
-  const { data: campaignDetail } = useAssetDetail(campaignAsset, "1m");
-  const recentCampaignCandles = useMemo(() => campaignDetail?.candles.slice(-10) ?? [], [campaignDetail?.candles]);
+  const list = trendingMarkets.slice(0, 7);
 
   return (
-    <aside className="space-y-4 p-2 lg:pt-0">
-      <button
-        type="button"
-        onClick={onOpenUpDown}
-        className="group relative w-full overflow-hidden rounded-[30px] border border-sky-500/25 bg-card p-6 text-left text-card-foreground shadow-[0_28px_90px_-48px_rgba(59,130,246,0.34)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-400/40"
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.28),transparent_44%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.22),transparent_44%)]" />
-        <div className="absolute inset-x-6 bottom-[-3rem] h-24 rounded-full bg-gradient-to-r from-sky-500/22 via-cyan-400/24 to-emerald-400/18 blur-2xl transition-transform duration-500 group-hover:scale-110" />
-        <div className="relative z-10">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="mt-2 pr-1 pb-1 bg-[linear-gradient(120deg,#ef4444_0%,#3b82f6_24%,#22c55e_48%,#2563eb_72%,#dc2626_100%)] bg-[length:240%_240%] bg-clip-text text-[30px] font-black italic leading-[1.02] tracking-[-0.05em] text-transparent [text-shadow:0_0_1px_rgba(255,255,255,0.14)] animate-[campaign-glow_2.4s_linear_infinite]">
-                UP or DOWN?
-              </h3>
-            </div>
-            <AssetLogo
-              alt={campaignDetail?.asset.name ?? campaignAsset}
-              imageSrc={campaignDetail?.asset.image}
-              symbol={campaignAsset}
-              className="size-14"
-            />
-          </div>
-          <div className="mt-5">
-            <CampaignMiniChart candles={recentCampaignCandles} livePrice={campaignDetail?.livePriceUsd} />
-          </div>
-          <div className="mt-5 inline-flex items-center rounded-full border border-sky-400/20 bg-sky-500/12 px-4 py-2 text-[12px] font-black uppercase tracking-[0.14em] text-sky-700 dark:text-sky-300">
-            Pick Now!
+    <aside className="w-full space-y-5 lg:sticky lg:top-28 lg:w-80">
+      {/* Kalshi-style promo strip */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 p-4 text-white shadow-lg ring-1 ring-emerald-500/25">
+        <div
+          className="pointer-events-none absolute -right-6 -top-6 size-28 rounded-full bg-emerald-400/15 blur-2xl"
+          aria-hidden
+        />
+        <p className="relative text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-200/80">
+          Crypto thresholds
+        </p>
+        <h2 className="relative mt-2 text-lg font-bold leading-tight tracking-tight">Up or Down</h2>
+        <p className="relative mt-1 text-xs leading-relaxed text-emerald-100/75">
+          Short intraday markets on Solana
+        </p>
+        <div className="relative mt-4 flex justify-center">
+          <div className="flex gap-1 rounded-full bg-emerald-500/20 px-3 py-2 ring-1 ring-emerald-400/20">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <span
+                key={i}
+                className="size-2 rounded-full bg-emerald-400/90 shadow-[0_0_12px_rgba(52,211,153,0.7)]"
+                style={{ opacity: 0.35 + i * 0.13 }}
+                aria-hidden
+              />
+            ))}
           </div>
         </div>
-      </button>
-
-      <div className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-emerald-500/20 bg-card p-5 text-center text-card-foreground shadow-[0_24px_80px_-50px_rgba(16,185,129,0.35)] transition-transform duration-200 hover:-translate-y-0.5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.22),transparent_58%)] dark:bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.16),transparent_58%)]" />
-        <div className="relative z-10">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-emerald-400">BTC Price Prediction Challenge</p>
-          <h3 className="mb-2 text-[28px] font-black italic leading-none tracking-tighter text-foreground">$10M POOL</h3>
-          <div className="flex items-center justify-center gap-1.5 text-[11px] font-medium text-muted-foreground">Ends in 1d 20h 5m</div>
-        </div>
-        <div className="absolute bottom-[-1.5rem] left-1/2 flex w-full -translate-x-1/2 justify-center opacity-10 transition-transform duration-500 group-hover:scale-110">
-          <TrendingUp className="size-20 text-emerald-500" />
-        </div>
+        <button
+          type="button"
+          onClick={onOpenUpDown}
+          className="relative mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-50"
+        >
+          Trade now
+          <ChevronRight className="size-4 opacity-70" aria-hidden />
+        </button>
       </div>
 
-      <div className="cursor-pointer rounded-[24px] border border-border/60 bg-card/82 px-4 py-4 shadow-[0_18px_48px_-42px_rgba(15,23,42,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-card">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Featured Narrative</p>
-            <h4 className="mt-1 text-[15px] font-semibold text-foreground">ETH Spot ETF</h4>
-            <p className="mt-1 text-[11px] text-muted-foreground">Approval Deadline May 2024</p>
+      {/* Trending — numbered rows, question + level, % + skew */}
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="flex items-center justify-between border-b border-border/70 px-3 py-2.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-semibold text-foreground">Trending</span>
+            <TrendingUp className="size-3.5 text-emerald-500" aria-hidden />
           </div>
-          <div className="flex h-8 w-10 items-center justify-center rounded-2xl border border-border/60 bg-background/75 text-lg">📈</div>
+          <ChevronRight className="size-4 text-muted-foreground/60" aria-hidden />
         </div>
+        <ul className="divide-y divide-border/60">
+          {list.map((market, index) => {
+            const yesPct = yesPercentFromPools(market);
+            const yesProb = market.outcomes.find((o) => o.id === "yes")?.probability ?? yesPct;
+            const skew = Math.round(yesProb - 50);
+            const trendUp = skew >= 0;
+            return (
+              <li key={market.id}>
+                <button
+                  type="button"
+                  onClick={() => onOpen(market)}
+                  className="flex w-full gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/40"
+                >
+                  <span className="w-5 shrink-0 pt-0.5 text-center text-[13px] font-medium tabular-nums text-muted-foreground">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground">{market.title}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{thresholdSubtitle(market)}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-[15px] font-semibold tabular-nums text-foreground">{yesProb}%</div>
+                    <div
+                      className={cn(
+                        "mt-0.5 flex items-center justify-end gap-0.5 text-[11px] font-semibold tabular-nums",
+                        trendUp ? "text-emerald-500" : "text-rose-500",
+                      )}
+                    >
+                      <span aria-hidden>{trendUp ? "▲" : "▼"}</span>
+                      {Math.abs(skew)}
+                    </div>
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </div>
-
-      <section>
-        <h3 className="text-[15px] font-semibold tracking-tight text-foreground">Trending</h3>
-        <div className="mt-3 space-y-2">
-          {trendingMarkets.slice(0, 2).map((market, index) => (
-            <button
-              key={market.id}
-              type="button"
-              className="flex w-full items-start gap-3 rounded-[18px] border border-transparent px-3 py-2.5 text-left transition-all duration-200 hover:border-border/60 hover:bg-muted/45"
-            >
-              <span className="pt-0.5 text-[12px] font-semibold text-muted-foreground">{index + 1}</span>
-              <div className="min-w-0 flex-1">
-                <h5 className="line-clamp-2 text-[13px] font-semibold leading-5 text-foreground">{market.title}</h5>
-                <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{market.narrativeFamily}</p>
-              </div>
-              <div className="shrink-0 text-right">
-                <div className="text-[13px] font-semibold text-foreground">{Math.max(...market.outcomes.map((outcome) => outcome.probability))}%</div>
-                <div className="mt-1 flex items-center justify-end text-[10px] font-semibold text-rose-500 dark:text-rose-400">
-                  <TrendingDown className="size-3" /> 4
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <SideList title="Highest volume" items={highestVolumeMarkets} variant="volume" />
     </aside>
   );
 }
@@ -1489,28 +1242,12 @@ const MarketsAll = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<DiscoveryTab>("All");
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("All assets");
-  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>("All schedules");
-  const [narrativeFilter, setNarrativeFilter] = useState<NarrativeFilter>("All narratives");
-  const [stateFilter, setStateFilter] = useState<StateFilter>("All states");
-  const [sortFilter, setSortFilter] = useState<SortFilter>("Featured first");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [openOnly, setOpenOnly] = useState(false);
   const [nowMs, setNowMs] = useState(Date.now());
-  const [campaignAssetIndex, setCampaignAssetIndex] = useState(0);
-  const campaignAssets: CampaignAssetSymbol[] = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "LINK"];
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setNowMs(Date.now()), 60000);
     return () => window.clearInterval(intervalId);
   }, []);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setCampaignAssetIndex((current) => (current + 1) % campaignAssets.length);
-    }, 4200);
-
-    return () => window.clearInterval(intervalId);
-  }, [campaignAssets.length]);
 
   const discoveryMarkets = getDiscoveryMarkets(nowMs);
 
@@ -1520,68 +1257,29 @@ const MarketsAll = () => {
     if (activeTab === "Ending Soon" && market.timeBucket !== "Ending Soon") return false;
     if (activeTab === "Featured" && !market.isFeaturedDiscovery) return false;
     if (assetFilter !== "All assets" && market.assetSymbol !== assetFilter) return false;
-    if (scheduleFilter !== "All schedules" && market.schedule !== scheduleFilter) return false;
-    if (narrativeFilter !== "All narratives" && market.narrativeFamily !== narrativeFilter) return false;
-    if (stateFilter !== "All states" && market.stateCategory !== stateFilter) return false;
-    if (openOnly && market.stateCategory !== "Open") return false;
-
-    const needle = searchTerm.trim().toLowerCase();
-    if (needle) {
-      const haystack = `${market.title} ${market.assetSymbol} ${market.narrativeFamily} ${market.thresholdLabel}`.toLowerCase();
-      if (!haystack.includes(needle)) return false;
-    }
 
     return true;
   });
 
   filteredMarkets = [...filteredMarkets].sort((a, b) => {
-    if (sortFilter === "Ending soon") {
-      return new Date(a.endAt).getTime() - new Date(b.endAt).getTime();
-    }
-    if (sortFilter === "Closest to threshold") {
-      return Math.abs(a.distancePct) - Math.abs(b.distancePct);
-    }
-    if (sortFilter === "Largest pool") {
-      return b.yesPoolValue + b.noPoolValue - (a.yesPoolValue + a.noPoolValue);
-    }
     if (a.isFeaturedDiscovery === b.isFeaturedDiscovery) {
       return new Date(a.endAt).getTime() - new Date(b.endAt).getTime();
     }
     return a.isFeaturedDiscovery ? -1 : 1;
   });
-
-  const featuredStripMarkets = filteredMarkets.filter((market) => FEATURED_MARKET_IDS.includes(market.id)).slice(0, 6);
-  const todayMarkets = filteredMarkets.filter((market) => market.timeBucket === "Today").slice(0, 6);
-  const weekMarkets = filteredMarkets.filter((market) => market.timeBucket === "This Week").slice(0, 6);
-  const endingSoonMarkets = filteredMarkets
-    .filter((market) => market.timeBucket === "Ending Soon")
-    .sort((a, b) => new Date(a.endAt).getTime() - new Date(b.endAt).getTime())
-    .slice(0, 6);
-  const aboveYesterdayCloseMarkets = filteredMarkets.filter((market) => market.narrativeFamily === "Above Yesterday Close").slice(0, 6);
-  const belowWeeklyOpenMarkets = filteredMarkets.filter((market) => market.narrativeFamily === "Below Weekly Open").slice(0, 6);
-  const featuredThresholdMarkets = filteredMarkets.filter((market) => market.isFeaturedDiscovery);
-  const highestVolumeMarkets = [...filteredMarkets]
+  const trendingMarkets = [...(filteredMarkets.length > 0 ? filteredMarkets : discoveryMarkets)]
     .sort((a, b) => b.yesPoolValue + b.noPoolValue - (a.yesPoolValue + a.noPoolValue))
-    .slice(0, 3);
-
+    .slice(0, 7);
   const openMarket = (market: DiscoveryMarket) => {
     navigate(`/app/market/${market.id}`, { state: { market: market as Market } });
   };
 
   const openUpDownMarket = () => {
-    navigate("/app/markets/updown");
+    navigate("/app/markets/updown/crypto");
   };
-  const fallbackCampaignAssets = new Set(FALLBACK_ASSETS.map((asset) => asset.symbol));
-  const campaignAsset = fallbackCampaignAssets.has(campaignAssets[campaignAssetIndex]) ? campaignAssets[campaignAssetIndex] : "BTC";
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.08),transparent_42%)] dark:bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.14),transparent_46%)]" />
-        <div className="absolute left-[8%] top-24 h-72 w-72 rounded-full bg-cyan-400/10 blur-[110px] dark:bg-cyan-400/12" />
-        <div className="absolute right-[6%] top-48 h-80 w-80 rounded-full bg-emerald-400/10 blur-[120px] dark:bg-emerald-400/10" />
-        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-background via-background/80 to-transparent" />
-      </div>
       <Header
         discoveryNav={{
           tabs: TABS,
@@ -1592,63 +1290,30 @@ const MarketsAll = () => {
         }}
       />
 
-      <main className="mx-auto max-w-[1440px] px-4 pb-16 pt-40 lg:px-8">
-        <div className="mt-8 flex flex-col gap-8 lg:flex-row">
-          <div className="space-y-10 lg:w-3/4">
-            <FeaturedStrip markets={featuredStripMarkets} onOpen={openMarket} />
+      <main className="mx-auto max-w-6xl px-4 pb-16 pt-4 lg:px-8">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
+          <section className="min-w-0 flex-1">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredMarkets.map((market) => (
+                <DiscoveryMarketCard key={market.id} market={market} onOpen={openMarket} />
+              ))}
+            </div>
+          </section>
 
-            <MarketSection
-              title="Today's Key Levels"
-              subtitle="Strongest daily threshold markets and the main habit-loop entry point."
-              icon={<TrendingUp className="size-5" />}
-              markets={todayMarkets}
-              onOpen={openMarket}
-            />
-            <MarketSection
-              title="This Week"
-              subtitle="Longer-horizon anchor markets with stronger narrative concentration."
-              icon={<CalendarRange className="size-5" />}
-              markets={weekMarkets}
-              onOpen={openMarket}
-            />
-            <MarketSection
-              title="Ending Soon"
-              subtitle="Urgency-first shelf sorted by the nearest lock or resolution."
-              icon={<Timer className="size-5" />}
-              markets={endingSoonMarkets}
-              onOpen={openMarket}
-            />
-            <MarketSection
-              title="Above Yesterday Close"
-              subtitle="Recurring family shelf for the simplest reclaim narrative."
-              icon={<TrendingUp className="size-5" />}
-              markets={aboveYesterdayCloseMarkets}
-              onOpen={openMarket}
-            />
-            <MarketSection
-              title="Below Weekly Open"
-              subtitle="Inverse weekly framing for users scanning bearish threshold setups."
-              icon={<ArrowDownRight className="size-5" />}
-              markets={belowWeeklyOpenMarkets}
-              onOpen={openMarket}
-            />
-          </div>
-
-          <div className="lg:w-1/4">
+          <div className="shrink-0 lg:w-80">
             <DiscoverSidebar
-              trendingMarkets={featuredThresholdMarkets}
-              highestVolumeMarkets={highestVolumeMarkets}
+              trendingMarkets={trendingMarkets}
               onOpenUpDown={openUpDownMarket}
-              campaignAsset={campaignAsset}
+              onOpen={openMarket}
             />
           </div>
         </div>
 
         {filteredMarkets.length === 0 && (
-          <section className="mt-10 rounded-[28px] border border-dashed border-border/70 bg-card/75 p-10 text-center shadow-[0_24px_64px_-44px_rgba(15,23,42,0.18)] backdrop-blur dark:shadow-[0_28px_80px_-44px_rgba(2,6,23,0.82)]">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">No markets match this discovery state.</h2>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Loosen a filter or switch tabs. The page is intentionally curated, so combinations can narrow to zero quickly.
+          <section className="mt-8 rounded-lg border border-dashed border-border bg-muted/20 px-6 py-10 text-center">
+            <h2 className="text-lg font-semibold text-foreground">No markets match</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Try a different time tab or set the header asset filter to All assets.
             </p>
           </section>
         )}

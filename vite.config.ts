@@ -18,9 +18,34 @@ export default defineConfig(({ mode }) => ({
         rewrite: (path) => path.replace(/^\/api\/polymarket/, ''),
         timeout: 60000,
       },
+      // FRED API — avoids browser CORS; client passes api_key via VITE_FRED_API_KEY
+      '/api/fred': {
+        target: 'https://api.stlouisfed.org/fred',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/fred/, ''),
+        timeout: 60000,
+      },
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  build: {
+    sourcemap: mode === "development",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+
+          if (id.includes("katex")) {
+            return "math";
+          }
+
+          if (id.includes("lightweight-charts") || id.includes("recharts")) {
+            return "charts";
+          }
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

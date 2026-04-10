@@ -19,8 +19,9 @@ describe("MarketsAll", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Today's Key Levels")).toBeInTheDocument();
-    expect(screen.getByText("Catch the next move.")).toBeInTheDocument();
-    expect(screen.getByText("Highest volume")).toBeInTheDocument();
+    expect(screen.getByText("Up or Down")).toBeInTheDocument();
+    expect(screen.getAllByText("View market").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("BTC at or above yesterday close by today close").length).toBeGreaterThan(0);
+    expect(screen.queryByText("BTC: Today's key level")).not.toBeInTheDocument();
   });
 });
