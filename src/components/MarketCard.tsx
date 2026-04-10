@@ -10,19 +10,29 @@ interface MarketCardProps {
   market: Market;
   /** When provided, passes this state when navigating to market detail (e.g. { market }) */
   navigationState?: Record<string, unknown>;
+  /** When set, card and outcome actions navigate here instead of market detail / bet modal */
+  href?: string;
 }
 
-const MarketCard = memo(({ market, navigationState }: MarketCardProps) => {
+const MarketCard = memo(({ market, navigationState, href }: MarketCardProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [betModal, setBetModal] = useState<{ open: boolean; side: 'YES' | 'NO'; outcome: string } | null>(null);
 
   const handleBet = (e: React.MouseEvent, side: 'YES' | 'NO', outcomeLabel: string) => {
     e.stopPropagation();
+    if (href) {
+      navigate(href);
+      return;
+    }
     setBetModal({ open: true, side, outcome: outcomeLabel });
   };
 
   const handleCardClick = () => {
+    if (href) {
+      navigate(href);
+      return;
+    }
     navigate(`/app/market/${market.id}`, navigationState ? { state: navigationState } : {});
   };
 
@@ -90,7 +100,7 @@ const MarketCard = memo(({ market, navigationState }: MarketCardProps) => {
             {market.isBinary ? (
               <div className="grid grid-cols-2 gap-3">
                 {market.outcomes.map((outcome) => {
-                  const isYes = outcome.label === 'Yes';
+                  const isYes = outcome.label.toLowerCase() === "yes";
                   const colorClass = isYes ? 'text-accent-green' : 'text-primary';
                   const bgHoverClass = isYes ? 'hover:bg-accent-green/10 hover:border-accent-green/30' : 'hover:bg-primary/10 hover:border-primary/30';
 
@@ -153,7 +163,7 @@ const MarketCard = memo(({ market, navigationState }: MarketCardProps) => {
         </div>
       </div>
 
-      {betModal && (
+      {!href && betModal && (
         <BetModal
           open={betModal.open}
           onClose={() => setBetModal(null)}

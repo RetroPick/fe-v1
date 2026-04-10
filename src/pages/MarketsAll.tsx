@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowUpRight, ChevronRight, TrendingUp } from "lucide-react";
+import { ChevronRight, TrendingUp } from "lucide-react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import { AssetLogo } from "@/components/AssetLogo";
+import MarketCard from "@/components/MarketCard";
 import { cn } from "@/lib/utils";
 import { Market } from "@/types/market";
 
@@ -39,22 +39,7 @@ type DiscoveryMarket = Market & {
 
 const TABS: DiscoveryTab[] = ["All", "Today", "This Week", "Ending Soon", "Featured", "My Positions"];
 
-const discoveryStatusStyles: Record<
-  DiscoveryMarket["stateCategory"],
-  {
-    badge: string;
-  }
-> = {
-  Open: {
-    badge: "border-[#1f4e39] bg-[#193629] text-[#7df0b6]",
-  },
-  Locked: {
-    badge: "border-[#5b4720] bg-[#3b3120] text-[#f7cf6a]",
-  },
-  Resolving: {
-    badge: "border-[#1f4764] bg-[#163246] text-[#7bc7ff]",
-  },
-};
+const UPDOWN_CRYPTO_HREF = "/app/markets/updown/crypto";
 
 function buildDate(base: number, offsetHours: number) {
   return new Date(base + offsetHours * 60 * 60 * 1000);
@@ -1012,133 +997,6 @@ function getDiscoveryMarkets(nowMs: number): DiscoveryMarket[] {
   }));
 }
 
-function DiscoveryMarketCard({
-  market,
-  onOpen,
-}: {
-  market: DiscoveryMarket;
-  onOpen: (market: DiscoveryMarket) => void;
-}) {
-  const totalPool = market.yesPoolValue + market.noPoolValue;
-  const yesShare = (market.yesPoolValue / totalPool) * 100;
-  const noShare = 100 - yesShare;
-  const yesPct = Math.round(yesShare);
-  const noPct = Math.round(noShare);
-  const style = discoveryStatusStyles[market.stateCategory];
-
-  return (
-    <article
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpen(market)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen(market);
-        }
-      }}
-      className={cn(
-        "group relative flex cursor-pointer flex-col overflow-hidden rounded-[26px] border text-left outline-none transition-all duration-200",
-        "border-[#222b35] bg-[#161c22] text-white shadow-[0_18px_40px_-28px_rgba(0,0,0,0.65)]",
-        "hover:-translate-y-0.5 hover:border-[#2f3a46] hover:bg-[#192028] hover:shadow-[0_28px_60px_-32px_rgba(0,0,0,0.78)]",
-        "focus-visible:ring-2 focus-visible:ring-emerald-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-      )}
-    >
-      <div className="relative flex flex-1 flex-col p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <AssetLogo symbol={market.assetSymbol} className="size-11 shrink-0 rounded-xl border border-white/8 bg-white/5 p-1.5" />
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span className="truncate text-sm font-semibold tracking-tight text-white">{market.assetName}</span>
-                <span className="text-xs font-semibold text-white/45">{market.assetSymbol}</span>
-                <span
-                  className={cn(
-                    "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
-                    style.badge,
-                  )}
-                >
-                  {market.stateCategory}
-                </span>
-              </div>
-              <p className="mt-0.5 text-[11px] font-medium tabular-nums text-white/48 sm:text-xs">
-                {market.countdownLabel}
-              </p>
-            </div>
-          </div>
-          <span
-            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-white/8 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/62"
-            title="Settled on Solana"
-          >
-            <span className="size-1.5 rounded-full bg-gradient-to-br from-[#9945FF] to-[#14F195]" aria-hidden />
-            Solana
-          </span>
-        </div>
-
-        <h3 className="mt-4 line-clamp-2 text-[15px] font-semibold leading-snug tracking-tight text-white sm:text-[17px]">
-          {market.title}
-        </h3>
-        <p className="mt-2 line-clamp-1 text-sm text-white/50">
-          {market.narrativeFamily}
-        </p>
-
-        <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/6 bg-black/10 px-3 py-2">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/36">Chance</p>
-            <p className="mt-1 text-lg font-bold tabular-nums text-white">{yesPct}%</p>
-          </div>
-          <div className="flex h-2.5 w-28 overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full bg-[#22c55e] transition-[width] duration-300"
-              style={{ width: `${yesPct}%` }}
-            />
-            <div
-              className="h-full bg-[#ef4444] transition-[width] duration-300"
-              style={{ width: `${noPct}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2.5">
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onOpen(market);
-            }}
-            className="rounded-2xl border border-[#1f4e39] bg-[#193629] px-3 py-3 text-left transition-colors hover:border-[#2b6b4f] hover:bg-[#1f4231]"
-          >
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6dd3a1]">Yes</span>
-            <span className="mt-1 block text-lg font-bold tabular-nums text-[#7df0b6]">{yesPct}%</span>
-          </button>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onOpen(market);
-            }}
-            className="rounded-2xl border border-[#5a2629] bg-[#3b2427] px-3 py-3 text-left transition-colors hover:border-[#773439] hover:bg-[#47292d]"
-          >
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#ff7f84]">No</span>
-            <span className="mt-1 block text-lg font-bold tabular-nums text-[#ff9fa3]">{noPct}%</span>
-          </button>
-        </div>
-
-        <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3">
-          <div>
-            <span className="block text-sm font-medium text-white/78">{market.volume} Vol.</span>
-            <span className="mt-0.5 block text-xs text-white/38">{thresholdSubtitle(market)}</span>
-          </div>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/78 transition-colors group-hover:text-white">
-            View market
-            <ArrowUpRight className="size-3.5 opacity-70" aria-hidden />
-          </span>
-        </div>
-      </div>
-    </article>
-  );
-}
-
 function DiscoverSidebar({
   trendingMarkets,
   onOpenUpDown,
@@ -1275,7 +1133,7 @@ const MarketsAll = () => {
   };
 
   const openUpDownMarket = () => {
-    navigate("/app/markets/updown/crypto");
+    navigate(UPDOWN_CRYPTO_HREF);
   };
 
   return (
@@ -1290,12 +1148,12 @@ const MarketsAll = () => {
         }}
       />
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-4 lg:px-8">
+      <main className="mx-auto max-w-[1440px] px-4 pb-16 pt-4 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
           <section className="min-w-0 flex-1">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredMarkets.map((market) => (
-                <DiscoveryMarketCard key={market.id} market={market} onOpen={openMarket} />
+                <MarketCard key={market.id} market={market} href={UPDOWN_CRYPTO_HREF} />
               ))}
             </div>
           </section>
