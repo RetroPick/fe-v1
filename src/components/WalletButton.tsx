@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccount, useDisconnect, useBalance } from "wagmi";
-import LoginModal from "./auth/LoginModal";
 import {
     Copy,
     LogOut,
@@ -33,6 +31,7 @@ import WorldIDVerifier from "./auth/WorldIDVerifier";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import { Language } from "@/data/translations";
+import { openAppKitModal } from "@/lib/openAppKitModal";
 
 const WalletButton = () => {
     const { address, isConnected } = useAccount();
@@ -45,8 +44,6 @@ const WalletButton = () => {
         ? `${Number(balance.formatted).toFixed(2)} ${balance.symbol}`
         : "0.00";
 
-    const [isLoginOpen, setIsLoginOpen] = useState(false);
-
     const languages: { code: Language; label: string }[] = [
         { code: 'en', label: 'English' },
         { code: 'id', label: 'Indonesia' },
@@ -57,15 +54,12 @@ const WalletButton = () => {
 
     if (!isConnected) {
         return (
-            <>
-                <Button
-                    onClick={() => setIsLoginOpen(true)}
-                    className="h-9 rounded-lg border border-border/50 bg-secondary px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted sm:px-5 sm:text-sm dark:border-transparent dark:ring-1 dark:ring-white/[0.06]"
-                >
-                    Connect Wallet
-                </Button>
-                <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-            </>
+            <Button
+                onClick={() => void openAppKitModal()}
+                className="h-9 rounded-lg border border-border/50 bg-secondary px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted sm:px-5 sm:text-sm dark:border-transparent dark:ring-1 dark:ring-white/[0.06]"
+            >
+                Connect Wallet
+            </Button>
         );
     }
 

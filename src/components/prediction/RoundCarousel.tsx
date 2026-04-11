@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { PredictionRoundCard } from "./PredictionRoundCard";
-import LoginModal from "@/components/auth/LoginModal";
 import type { PredictionRound } from "@/types/prediction";
+import { openAppKitModal } from "@/lib/openAppKitModal";
 
 interface RoundCarouselProps {
   rounds: PredictionRound[];
@@ -10,8 +10,6 @@ interface RoundCarouselProps {
 export function RoundCarousel({ rounds }: RoundCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragStateRef = useRef<{ startX: number; scrollLeft: number; active: boolean; pointerId: number | null } | null>(null);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-
   const visibleRounds = rounds.slice(0, 10);
 
   useEffect(() => {
@@ -125,10 +123,13 @@ export function RoundCarousel({ rounds }: RoundCarouselProps) {
         onWheel={handleWheel}
       >
         {visibleRounds.map((round) => (
-          <PredictionRoundCard key={round.id} round={round} onRequestLogin={() => setIsLoginOpen(true)} />
+          <PredictionRoundCard
+            key={round.id}
+            round={round}
+            onRequestLogin={() => void openAppKitModal()}
+          />
         ))}
       </div>
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </div>
   );
 }

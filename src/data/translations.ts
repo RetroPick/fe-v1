@@ -117,7 +117,16 @@ export const translations = {
             bet_yes: "Bet Yes",
             bet_no: "Bet No",
             buy: "Buy",
-            trade: "Trade"
+            trade: "Trade",
+            range_pool_share: "Pool",
+            range_note: "One contest: mutually exclusive brackets — exactly one wins; rows show pool share (not Yes/No pairs).",
+            multi_yes_pct: "Yes %",
+            multi_note:
+                "Each row is its own Yes/No on that outcome (stacked binary lines). Range is different: one pool, one winner. Same strip layout as range for display only.",
+            type_multi_yes_no: "Multi Yes / No",
+            type_range: "Range",
+            type_binary_yesno: "Yes / No",
+            type_updown: "Up / Down"
         }
     },
     id: {
@@ -237,7 +246,16 @@ export const translations = {
             bet_yes: "Taruhan Ya",
             bet_no: "Taruhan Tidak",
             buy: "Beli",
-            trade: "Perdagangan"
+            trade: "Perdagangan",
+            range_pool_share: "Kolam",
+            range_note: "Satu kontes: bracket eksklusif — satu pemenang; baris menunjukkan porsi kolam (bukan pasangan Ya/Tidak).",
+            multi_yes_pct: "% Ya",
+            multi_note:
+                "Setiap baris adalah Ya/Tidak sendiri untuk hasil itu (biner bertumpuk). Rentang beda: satu kolam, satu pemenang. Tata letak strip sama dengan rentang hanya untuk tampilan.",
+            type_multi_yes_no: "Multi Ya / Tidak",
+            type_range: "Rentang",
+            type_binary_yesno: "Ya / Tidak",
+            type_updown: "Naik / Turun"
         },
     },
     zh: {
@@ -356,7 +374,16 @@ export const translations = {
             bet_yes: "投注是",
             bet_no: "投注否",
             buy: "购买",
-            trade: "交易"
+            trade: "交易",
+            range_pool_share: "池",
+            range_note: "单一赛事：互斥区间——仅一个胜出；行内为池占比（非是/否成对）。",
+            multi_yes_pct: "是 %",
+            multi_note:
+                "每一行对该结果单独是/否（多个二元叠加）。区间不同：单池单胜。与区间相同的横条布局仅为展示。",
+            type_multi_yes_no: "多重 是/否",
+            type_range: "区间",
+            type_binary_yesno: "是 / 否",
+            type_updown: "涨 / 跌"
         },
     },
     hi: {
@@ -475,7 +502,16 @@ export const translations = {
             bet_yes: "हाँ पर शर्त",
             bet_no: "नहीं पर शर्त",
             buy: "खरीदें",
-            trade: "व्यापार"
+            trade: "व्यापार",
+            range_pool_share: "पूल",
+            range_note: "एक प्रतियोगिता: अपवर्जित ब्रैकेट — एक ही जीतता है; पंक्तियों में पूल हिस्सा (हाँ/नहीं जोड़े नहीं)।",
+            multi_yes_pct: "हाँ %",
+            multi_note:
+                "प्रत्येक पंक्ति उस परिणाम पर अलग हाँ/नहीं है (ढेर सारे छोटे बाइनरी)। रेंज अलग: एक पूल, एक विजेता। रेंज जैसी पट्टी केवल दिखावट के लिए।",
+            type_multi_yes_no: "मल्टी हाँ / नहीं",
+            type_range: "रेंज",
+            type_binary_yesno: "हाँ / नहीं",
+            type_updown: "ऊपर / नीचे"
         },
     },
     es: {
@@ -594,7 +630,16 @@ export const translations = {
             bet_yes: "Apostar Sí",
             bet_no: "Apostar No",
             buy: "Comprar",
-            trade: "Comercio"
+            trade: "Comercio",
+            range_pool_share: "Pool",
+            range_note: "Un solo evento: tramos excluyentes — gana uno; filas = participación del pool (no pares Sí/No).",
+            multi_yes_pct: "% Sí",
+            multi_note:
+                "Cada fila es un Sí/No propio sobre ese resultado (binarios apilados). El rango es distinto: un pool, un ganador. Misma franja visual que rango solo por diseño.",
+            type_multi_yes_no: "Multi Sí / No",
+            type_range: "Rango",
+            type_binary_yesno: "Sí / No",
+            type_updown: "Sube / Baja"
         },
     }
 };

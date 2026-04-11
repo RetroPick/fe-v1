@@ -7,16 +7,16 @@ import Logo from "@/components/Logo";
 import { ModeToggle } from "./mode-toggle";
 import type { AssetClass } from "@/lib/market-data/types";
 import { ASSET_CLASS_OPTIONS, ASSET_CLASS_SUBTITLE } from "@/lib/market-data/asset-classes";
+import type { DiscoveryVerticalId } from "@/lib/discovery-verticals";
+import { DISCOVERY_VERTICALS } from "@/lib/discovery-verticals";
 
 const WalletButton = lazy(() => import("./WalletButton"));
 
 interface HeaderProps {
   discoveryNav?: {
-    tabs: readonly string[];
-    activeTab: string;
-    onTabChange: (tab: string) => void;
-    assetFilter: string;
-    onAssetFilterChange: (value: string) => void;
+    verticals: typeof DISCOVERY_VERTICALS;
+    activeVerticalId: DiscoveryVerticalId;
+    onVerticalChange: (id: DiscoveryVerticalId) => void;
   };
   /** Discover page: asset-class toggles + subtitle before time-bucket tabs. */
   assetClassNav?: {
@@ -30,18 +30,11 @@ interface HeaderProps {
   };
 }
 
-/** Symbols that have threshold markets on Discover; avoids empty grid when rail coins (e.g. BNB) mismatch catalog. */
-const DISCOVERY_ASSET_ORDER = ["BTC", "ETH", "SOL"] as const;
-
 const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: HeaderProps) => {
   const location = useLocation();
   const { assets, selectedSymbol, setSelectedSymbol } = useAssetContext();
   const railRef = useRef<HTMLDivElement>(null);
   const isMarketsAllPage = location.pathname === "/app/markets/all";
-
-  const discoveryRailAssets = DISCOVERY_ASSET_ORDER.map((symbol) => assets.find((a) => a.symbol === symbol)).filter(
-    (a): a is NonNullable<typeof a> => Boolean(a),
-  );
 
   const navItems = [
     { name: "Discover", path: "/app/markets/all" },
@@ -119,10 +112,10 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
             {primaryNav}
           </nav>
 
-          <div className="hidden min-w-0 flex-1 justify-center px-2 md:flex">
-            <div className="relative w-full max-w-xl">
+          <div className="ml-auto flex min-w-0 shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+            <div className="relative hidden w-[10rem] shrink-0 sm:w-[11.5rem] md:block">
               <Search
-                className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground sm:left-3.5 sm:size-4"
+                className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
                 aria-hidden
               />
               <input
@@ -130,12 +123,9 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                 placeholder="Search markets..."
                 readOnly
                 aria-label="Search markets"
-                className="h-9 w-full rounded-full border border-border bg-muted/40 py-0 pl-9 pr-3.5 text-sm leading-none text-foreground shadow-sm placeholder:text-muted-foreground outline-none transition-colors focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring/30 dark:bg-card/90 dark:shadow-none sm:pl-10 sm:pr-4"
+                className="h-8 w-full rounded-full border border-border bg-muted/40 py-0 pl-8 pr-2.5 text-xs leading-none text-foreground shadow-sm placeholder:text-muted-foreground outline-none transition-colors focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring/30 dark:bg-card/90 dark:shadow-none sm:h-9 sm:pl-9 sm:pr-3"
               />
             </div>
-          </div>
-
-          <div className="ml-auto flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
             <div className="rounded-full border border-border/60 bg-background/75 shadow-sm backdrop-blur [&_button]:h-8 [&_button]:w-8 [&_button]:min-h-0 sm:[&_button]:h-9 sm:[&_button]:w-9">
               <ModeToggle />
             </div>
@@ -201,73 +191,25 @@ const Header = ({ discoveryNav, assetClassNav, marketFamilyAssetClassNav }: Head
                       </span>
                     </>
                   ) : null}
-                  {discoveryNav.tabs.map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => discoveryNav.onTabChange(tab)}
-                      className={cn(
-                        "shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors sm:px-3 sm:py-1.5 sm:tracking-[0.14em]",
-                        discoveryNav.activeTab === tab
-                          ? "border border-primary/25 bg-primary/15 text-primary"
-                          : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
-                      )}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                  <span className="shrink-0 px-2 text-muted-foreground/60 select-none" aria-hidden="true">
-                    |
-                  </span>
-                  <button
-                    onClick={() => discoveryNav.onAssetFilterChange("All assets")}
-                    className={cn(
-                      "shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors sm:px-3 sm:py-1.5 sm:tracking-[0.14em]",
-                      discoveryNav.assetFilter === "All assets"
-                        ? "border border-primary/25 bg-primary/15 text-primary"
-                        : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                    aria-label="Show all discovery assets"
-                  >
-                    All Assets
-                  </button>
-
-                  {discoveryRailAssets.map((asset) => (
-                    <button
-                      key={asset.id}
-                      onClick={() => discoveryNav.onAssetFilterChange(asset.symbol)}
-                      className={cn(
-                        "grid min-h-9 min-w-[132px] shrink-0 grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-1.5 rounded-lg border px-1.5 py-1 text-left transition-all duration-200 sm:min-w-[148px] sm:gap-2 sm:px-2 sm:py-1.5",
-                        discoveryNav.assetFilter === asset.symbol
-                          ? "border-border bg-card shadow-[0_10px_18px_-16px_rgba(15,23,42,0.12)] dark:border-primary/30 dark:bg-card dark:shadow-none"
-                          : "border-border/50 bg-card/70 hover:border-border hover:bg-card dark:border-border dark:bg-secondary/80 dark:hover:border-primary/20 dark:hover:bg-card",
-                      )}
-                      aria-label={`Filter discovery by ${asset.name}`}
-                    >
-                      <img
-                        src={asset.image}
-                        alt=""
+                  {discoveryNav.verticals.map((v) => {
+                    const isActive = discoveryNav.activeVerticalId === v.id;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => discoveryNav.onVerticalChange(v.id)}
+                        aria-pressed={isActive}
                         className={cn(
-                          "size-6 rounded-full object-contain ring-1 sm:size-7",
-                          discoveryNav.assetFilter === asset.symbol
-                            ? "ring-slate-900/10 dark:ring-white/15"
-                            : "ring-slate-900/5 dark:ring-white/10",
-                        )}
-                      />
-                      <div className="min-w-0 whitespace-nowrap text-xs font-semibold tracking-tight text-foreground tabular-nums sm:text-sm">
-                        ${asset.priceUsd.toLocaleString(undefined, { maximumFractionDigits: asset.priceUsd >= 100 ? 2 : 4 })}
-                      </div>
-                      <div
-                        className={cn(
-                          "min-w-[52px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-semibold whitespace-nowrap tabular-nums sm:min-w-[58px] sm:text-[11px]",
-                          (asset.priceChangePct24h ?? 0) >= 0 ? "text-up" : "text-down",
+                          "shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-semibold tracking-tight transition-colors sm:px-3 sm:py-1.5",
+                          isActive
+                            ? "border border-primary/25 bg-primary/15 text-primary"
+                            : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                         )}
                       >
-                        {(asset.priceChangePct24h ?? 0) >= 0 ? "+" : ""}
-                        {(asset.priceChangePct24h ?? 0).toFixed(2)}%
-                      </div>
-                    </button>
-                  ))}
+                        {v.title}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ) : marketFamilyAssetClassNav ? (

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import LoginModal from "@/components/auth/LoginModal";
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { ThresholdRoundCard } from "./ThresholdRoundCard";
 import type { ThresholdRound } from "@/types/threshold";
+import { openAppKitModal } from "@/lib/openAppKitModal";
 
 interface ThresholdRoundCarouselProps {
   rounds: ThresholdRound[];
@@ -10,7 +10,6 @@ interface ThresholdRoundCarouselProps {
 export function ThresholdRoundCarousel({ rounds }: ThresholdRoundCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragStateRef = useRef<{ startX: number; scrollLeft: number; active: boolean; pointerId: number | null } | null>(null);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const visibleRounds = rounds.slice(0, 10);
 
   useEffect(() => {
@@ -117,10 +116,13 @@ export function ThresholdRoundCarousel({ rounds }: ThresholdRoundCarouselProps) 
         onWheel={handleWheel}
       >
         {visibleRounds.map((round) => (
-          <ThresholdRoundCard key={round.id} round={round} onRequestLogin={() => setIsLoginOpen(true)} />
+          <ThresholdRoundCard
+            key={round.id}
+            round={round}
+            onRequestLogin={() => void openAppKitModal()}
+          />
         ))}
       </div>
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </div>
   );
 }

@@ -1,43 +1,24 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronRight, TrendingUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import MarketCard from "@/components/MarketCard";
+import DiscoverFeaturedHero from "@/components/discover/DiscoverFeaturedHero";
+import DiscoverLeftNav from "@/components/discover/DiscoverLeftNav";
+import DiscoverRightRail from "@/components/discover/DiscoverRightRail";
 import { cn } from "@/lib/utils";
-import { Market } from "@/types/market";
-
-type DiscoveryTab = "All" | "Today" | "This Week" | "Ending Soon" | "Featured" | "My Positions";
-type AssetFilter = "All assets" | string;
-type NarrativeFilter =
-  | "All narratives"
-  | "Above Yesterday Close"
-  | "Above Daily Open"
-  | "Below Weekly Open"
-  | "Weekly Breakout Watch";
-
-type DiscoveryMarket = Market & {
-  assetSymbol: "BTC" | "ETH" | "SOL";
-  assetName: string;
-  timeBucket: "Today" | "This Week" | "Ending Soon";
-  schedule: "Daily" | "Weekly";
-  narrativeFamily: Exclude<NarrativeFilter, "All narratives">;
-  stateCategory: "Open" | "Locked" | "Resolving";
-  thresholdLabel: string;
-  thresholdValue: number;
-  currentPrice: number;
-  distancePct: number;
-  countdownLabel: string;
-  endAt: string;
-  yesPoolValue: number;
-  noPoolValue: number;
-  isFeaturedDiscovery: boolean;
-  featuredNote: string;
-  ruleText: string;
-  heroTag: string;
-};
-
-const TABS: DiscoveryTab[] = ["All", "Today", "This Week", "Ending Soon", "Featured", "My Positions"];
+import type { Market } from "@/types/market";
+import type { DiscoveryMarket } from "@/types/discovery-market";
+import type { DiscoveryVerticalId, MarketDiscoveryVerticalId } from "@/lib/discovery-verticals";
+import { DISCOVERY_VERTICALS } from "@/lib/discovery-verticals";
+import {
+  countByAsset,
+  countByHorizon,
+  HORIZON_META,
+  marketMatchesHorizon,
+  type CryptoAssetFilterId,
+  type CryptoHorizonId,
+} from "@/lib/discover-crypto";
 
 const UPDOWN_CRYPTO_HREF = "/app/markets/updown/crypto";
 
@@ -67,27 +48,250 @@ function formatCountdown(targetIso: string, nowMs: number) {
   return `${minutes}m`;
 }
 
-function yesPercentFromPools(market: DiscoveryMarket) {
-  const t = market.yesPoolValue + market.noPoolValue;
-  if (t <= 0) return 50;
-  return Math.round((market.yesPoolValue / t) * 100);
-}
-
-function thresholdSubtitle(market: DiscoveryMarket) {
-  const v = market.thresholdValue;
-  const price =
-    v >= 1000
-      ? `$${v.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
-      : `$${v.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
-  return `${price} · ${market.thresholdLabel}`;
-}
-
 function getDiscoveryMarkets(nowMs: number): DiscoveryMarket[] {
   const baseDay = new Date(nowMs);
   baseDay.setMinutes(0, 0, 0);
   const base = baseDay.getTime();
 
-  const raw: Array<Omit<DiscoveryMarket, "countdownLabel"> & { endAtDate: Date }> = [
+  type DiscoveryPreMap = Omit<DiscoveryMarket, "countdownLabel" | "discoveryVertical"> & { endAtDate: Date };
+
+  function makeRangeDiscoveryEntry(spec: {
+    id: string;
+    title: string;
+    assetSymbol: "BTC" | "ETH" | "SOL";
+    assetName: string;
+    icon: string;
+    iconColor: string;
+    schedule: "Daily" | "Weekly";
+    narrativeFamily: DiscoveryMarket["narrativeFamily"];
+    timeBucket: DiscoveryMarket["timeBucket"];
+    hoursFromBase: number;
+    bins: [string, number][];
+    roundId: string;
+  }): DiscoveryPreMap {
+    const outcomes = spec.bins.map(([label, probability], i) => ({
+      id: `${spec.id}-b${i}`,
+      label,
+      probability,
+    }));
+    const pool = Math.max(40000, spec.bins.reduce((s, [, p]) => s + p * 900, 0));
+    return {
+      id: spec.id,
+      title: spec.title,
+      description:
+        "Range contract: one oracle close lands in exactly one non-overlapping bin — pick the bracket you believe in.",
+      category: "Range",
+      primitive: "Range",
+      marketType: spec.schedule === "Weekly" ? "Weekly range" : "Daily range",
+      icon: spec.icon,
+      iconColor: spec.iconColor,
+      outcomes,
+      volume: "$380K",
+      totalPool: "$128,000",
+      expiry: spec.schedule === "Weekly" ? "Sunday close" : "Today close",
+      isBinary: false,
+      oracleSource:
+        spec.assetSymbol === "BTC"
+          ? "Chainlink BTC/USD"
+          : spec.assetSymbol === "ETH"
+            ? "Chainlink ETH/USD"
+            : "Chainlink SOL/USD",
+      timeframe: spec.schedule === "Weekly" ? "1 WEEK" : "1 DAY",
+      status: "Open",
+      roundId: spec.roundId,
+      lockRule: "Range bins are fixed before entry closes; only one bin wins.",
+      closeRule: "Final oracle close determines which bin is selected.",
+      resolutionFormula: "The winning bin is where lower_bound <= close_price < upper_bin (last bin inclusive top).",
+      invalidationRule: "Refund if close cannot be persisted from the oracle feed.",
+      settlementLabel: "Machine-settled on Solana",
+      assetSymbol: spec.assetSymbol,
+      assetName: spec.assetName,
+      timeBucket: spec.timeBucket,
+      schedule: spec.schedule,
+      narrativeFamily: spec.narrativeFamily,
+      stateCategory: "Open",
+      thresholdLabel: "Range bins",
+      thresholdValue: 0,
+      currentPrice: spec.assetSymbol === "BTC" ? 97200 : spec.assetSymbol === "ETH" ? 3400 : 185,
+      distancePct: 0.45,
+      endAtDate: buildDate(base, spec.hoursFromBase),
+      endAt: "",
+      yesPoolValue: Math.round(pool * 0.52),
+      noPoolValue: Math.round(pool * 0.48),
+      isFeaturedDiscovery: false,
+      featuredNote: "Multi-bin range — each row is its own Yes/No, not a single compact binary strip.",
+      ruleText: "Whichever bin contains the final oracle close wins.",
+      heroTag: "Range",
+    };
+  }
+
+  /** Stacked binary lines with range-like strip layout — not a single-winner bracket pool (see `MarketCard` multi layout). */
+  function makeMultiDiscoveryEntry(spec: {
+    id: string;
+    title: string;
+    assetSymbol: "BTC" | "ETH" | "SOL";
+    assetName: string;
+    icon: string;
+    iconColor: string;
+    schedule: "Daily" | "Weekly";
+    narrativeFamily: DiscoveryMarket["narrativeFamily"];
+    timeBucket: DiscoveryMarket["timeBucket"];
+    hoursFromBase: number;
+    lines: [string, number][];
+    roundId: string;
+  }): DiscoveryPreMap {
+    const outcomes = spec.lines.map(([label, probability], i) => ({
+      id: `${spec.id}-m${i}`,
+      label,
+      probability,
+    }));
+    const pool = Math.max(38000, spec.lines.reduce((s, [, p]) => s + p * 850, 0));
+    return {
+      id: spec.id,
+      title: spec.title,
+      description:
+        "Multi Yes/No: each row is its own binary on that outcome (not one mutually exclusive bracket pool). Same strip layout as range for scanning.",
+      category: "Crypto",
+      primitive: "MultiYesNo",
+      marketType: spec.schedule === "Weekly" ? "Weekly multi Yes/No" : "Daily multi Yes/No",
+      icon: spec.icon,
+      iconColor: spec.iconColor,
+      outcomes,
+      volume: "$265K",
+      totalPool: "$102,000",
+      expiry: spec.schedule === "Weekly" ? "Sunday close" : "Today close",
+      isBinary: false,
+      oracleSource:
+        spec.assetSymbol === "BTC"
+          ? "Chainlink BTC/USD"
+          : spec.assetSymbol === "ETH"
+            ? "Chainlink ETH/USD"
+            : "Chainlink SOL/USD",
+      timeframe: spec.schedule === "Weekly" ? "1 WEEK" : "1 DAY",
+      status: "Open",
+      roundId: spec.roundId,
+      lockRule: "Each listed line settles as its own Yes/No when the window closes.",
+      closeRule: "Daily or weekly close snapshot applies per line as defined in contract terms.",
+      resolutionFormula: "For each row: YES if that row's condition is met at settlement; otherwise NO.",
+      invalidationRule: "Refund if the oracle snapshot for a line cannot be persisted.",
+      settlementLabel: "Machine-settled on Solana",
+      assetSymbol: spec.assetSymbol,
+      assetName: spec.assetName,
+      timeBucket: spec.timeBucket,
+      schedule: spec.schedule,
+      narrativeFamily: spec.narrativeFamily,
+      stateCategory: "Open",
+      thresholdLabel: "Multi lines",
+      thresholdValue: 0,
+      currentPrice: spec.assetSymbol === "BTC" ? 97200 : spec.assetSymbol === "ETH" ? 3400 : 185,
+      distancePct: 0.45,
+      endAtDate: buildDate(base, spec.hoursFromBase),
+      endAt: "",
+      yesPoolValue: Math.round(pool * 0.51),
+      noPoolValue: Math.round(pool * 0.49),
+      isFeaturedDiscovery: false,
+      featuredNote: "Stacked Yes/No lines with range-style labels — each line is independent.",
+      ruleText: "Each row resolves YES or NO on its own condition; not a single bracket winner.",
+      heroTag: "Multi",
+    };
+  }
+
+  const binsBtc: [string, number][] = [
+    ["< $102k", 14],
+    ["$102k – $106k", 38],
+    ["$106k – $110k", 32],
+    ["> $110k", 16],
+  ];
+  const binsEth: [string, number][] = [
+    ["< $3.2k", 12],
+    ["$3.2k – $3.6k", 44],
+    ["$3.6k – $4.0k", 28],
+    ["> $4.0k", 16],
+  ];
+  const binsSol: [string, number][] = [
+    ["< $170", 18],
+    ["$170 – $195", 36],
+    ["$195 – $220", 30],
+    ["> $220", 16],
+  ];
+
+  const discoveryRangeRaw: DiscoveryPreMap[] = [];
+  let rangeIx = 0;
+  const rangeAssets = [
+    { sym: "BTC" as const, name: "Bitcoin", icon: "candlestick_chart", color: "text-emerald-400", bins: binsBtc },
+    { sym: "ETH" as const, name: "Ethereum", icon: "candlestick_chart", color: "text-sky-400", bins: binsEth },
+    { sym: "SOL" as const, name: "Solana", icon: "candlestick_chart", color: "text-violet-400", bins: binsSol },
+  ];
+  for (const a of rangeAssets) {
+    for (const sched of ["Daily", "Weekly"] as const) {
+      for (let slot = 1; slot <= 4; slot++) {
+        const sch = sched === "Daily" ? "d" : "w";
+        const id = `${a.sym.toLowerCase()}-${sch}-range-v${slot}`;
+        const title =
+          sched === "Daily"
+            ? `Where will ${a.sym}/USD close today? (v${slot})`
+            : `Where will ${a.sym}/USD finish this week? (v${slot})`;
+        discoveryRangeRaw.push(
+          makeRangeDiscoveryEntry({
+            id,
+            title,
+            assetSymbol: a.sym,
+            assetName: a.name,
+            icon: a.icon,
+            iconColor: a.color,
+            schedule: sched,
+            narrativeFamily: "Above Daily Open",
+            timeBucket: sched === "Daily" ? "Today" : "This Week",
+            hoursFromBase: sched === "Daily" ? 5 + slot : 40 + slot * 8,
+            bins: a.bins,
+            roundId: `RNG-${a.sym}-${rangeIx++}`,
+          }),
+        );
+      }
+    }
+  }
+
+  const discoveryMultiRaw: DiscoveryPreMap[] = [];
+  let multiIx = 0;
+  const multiAssets = [
+    { sym: "BTC" as const, name: "Bitcoin", icon: "layers", color: "text-emerald-400", lines: binsBtc },
+    { sym: "ETH" as const, name: "Ethereum", icon: "layers", color: "text-sky-400", lines: binsEth },
+    { sym: "SOL" as const, name: "Solana", icon: "layers", color: "text-violet-400", lines: binsSol },
+  ];
+  for (const a of multiAssets) {
+    for (const sched of ["Daily", "Weekly"] as const) {
+      for (let slot = 1; slot <= 3; slot++) {
+        const sch = sched === "Daily" ? "d" : "w";
+        const id = `${a.sym.toLowerCase()}-${sch}-multi-v${slot}`;
+        const title =
+          sched === "Daily"
+            ? `${a.sym}/USD close zones — independent Yes/No (today v${slot})`
+            : `${a.sym}/USD weekly close zones — independent Yes/No (v${slot})`;
+        const lines: [string, number][] = a.lines.map(([label, p], i) => {
+          const jitter = ((slot + i) % 5) - 2;
+          return [label, Math.min(82, Math.max(10, p + jitter))] as [string, number];
+        });
+        discoveryMultiRaw.push(
+          makeMultiDiscoveryEntry({
+            id,
+            title,
+            assetSymbol: a.sym,
+            assetName: a.name,
+            icon: a.icon,
+            iconColor: a.color,
+            schedule: sched,
+            narrativeFamily: "Above Daily Open",
+            timeBucket: sched === "Daily" ? "Today" : "This Week",
+            hoursFromBase: sched === "Daily" ? 4 + slot : 38 + slot * 7,
+            lines,
+            roundId: `MULTI-${a.sym}-${multiIx++}`,
+          }),
+        );
+      }
+    }
+  }
+
+  const discoveryThresholdRaw: DiscoveryPreMap[] = [
     {
       id: "btc-5m-updown",
       title: "BTC 5 Minute Up or Down",
@@ -1037,100 +1241,24 @@ function getDiscoveryMarkets(nowMs: number): DiscoveryMarket[] {
     },
   ];
 
+  const raw = [...discoveryThresholdRaw, ...discoveryRangeRaw, ...discoveryMultiRaw];
+
   return raw.map((market) => ({
     ...market,
+    discoveryVertical: "crypto" satisfies MarketDiscoveryVerticalId,
     endAt: market.endAtDate.toISOString(),
     countdownLabel: formatCountdown(market.endAtDate.toISOString(), nowMs),
   }));
 }
 
-function DiscoverSidebar({
-  trendingMarkets,
-  onOpenUpDown,
-  onOpen,
-}: {
-  trendingMarkets: DiscoveryMarket[];
-  onOpenUpDown: () => void;
-  onOpen: (market: DiscoveryMarket) => void;
-}) {
-  const list = trendingMarkets.slice(0, 7);
+type MarketsAllProps = { initialVertical?: DiscoveryVerticalId };
 
-  return (
-    <aside className="w-full space-y-6 lg:sticky lg:top-28">
-      <div className="rounded-xl bg-card p-5 shadow-none dark:ring-1 dark:ring-white/[0.04]">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Crypto thresholds
-        </p>
-        <h2 className="mt-2 text-lg font-bold leading-tight tracking-tight text-foreground">Up or Down</h2>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Short intraday markets on Solana
-        </p>
-        <button
-          type="button"
-          onClick={onOpenUpDown}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:brightness-110"
-        >
-          Trade now
-          <ChevronRight className="size-4 opacity-80" aria-hidden />
-        </button>
-      </div>
-
-      {/* Trending — numbered rows, question + level, % + skew */}
-      <div className="overflow-hidden rounded-xl bg-card shadow-none dark:ring-1 dark:ring-white/[0.04]">
-        <div className="flex items-center justify-between border-b border-border/40 px-4 py-3.5 dark:border-white/[0.06]">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold text-foreground">Trending</span>
-            <TrendingUp className="size-3.5 text-primary" aria-hidden />
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground/60" aria-hidden />
-        </div>
-        <ul className="divide-y divide-border/50 dark:divide-white/[0.06]">
-          {list.map((market, index) => {
-            const yesPct = yesPercentFromPools(market);
-            const yesProb = market.outcomes.find((o) => o.id === "yes")?.probability ?? yesPct;
-            const skew = Math.round(yesProb - 50);
-            const trendUp = skew >= 0;
-            return (
-              <li key={market.id}>
-                <button
-                  type="button"
-                  onClick={() => onOpen(market)}
-                  className="flex w-full gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/50"
-                >
-                  <span className="w-5 shrink-0 pt-0.5 text-center text-[13px] font-medium tabular-nums text-muted-foreground">
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground">{market.title}</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">{thresholdSubtitle(market)}</p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-[15px] font-semibold tabular-nums text-foreground">{yesProb}%</div>
-                    <div
-                      className={cn(
-                        "mt-0.5 flex items-center justify-end gap-0.5 text-[11px] font-semibold tabular-nums",
-                        trendUp ? "text-up" : "text-down",
-                      )}
-                    >
-                      <span aria-hidden>{trendUp ? "▲" : "▼"}</span>
-                      {Math.abs(skew)}
-                    </div>
-                  </div>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </aside>
-  );
-}
-
-const MarketsAll = () => {
+const MarketsAll = ({ initialVertical = "crypto" }: MarketsAllProps = {}) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<DiscoveryTab>("All");
-  const [assetFilter, setAssetFilter] = useState<AssetFilter>("All assets");
+  const [activeVertical, setActiveVertical] = useState<DiscoveryVerticalId>(initialVertical);
   const [nowMs, setNowMs] = useState(Date.now());
+  const [cryptoAssetFilter, setCryptoAssetFilter] = useState<CryptoAssetFilterId>("all");
+  const [cryptoHorizon, setCryptoHorizon] = useState<CryptoHorizonId>("all");
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setNowMs(Date.now()), 60000);
@@ -1139,25 +1267,75 @@ const MarketsAll = () => {
 
   const discoveryMarkets = getDiscoveryMarkets(nowMs);
 
-  let filteredMarkets = discoveryMarkets.filter((market) => {
-    if (activeTab === "Today" && market.timeBucket !== "Today") return false;
-    if (activeTab === "This Week" && market.timeBucket !== "This Week") return false;
-    if (activeTab === "Ending Soon" && market.timeBucket !== "Ending Soon") return false;
-    if (activeTab === "Featured" && !market.isFeaturedDiscovery) return false;
-    if (assetFilter !== "All assets" && market.assetSymbol !== assetFilter) return false;
+  const baseCryptoMarkets = useMemo(
+    () => discoveryMarkets.filter((m) => m.discoveryVertical === "crypto"),
+    [discoveryMarkets],
+  );
 
-    return true;
-  });
+  const trendingRailMarkets = useMemo(() => {
+    return [...baseCryptoMarkets].sort(
+      (a, b) => b.yesPoolValue + b.noPoolValue - (a.yesPoolValue + a.noPoolValue),
+    );
+  }, [baseCryptoMarkets]);
 
-  filteredMarkets = [...filteredMarkets].sort((a, b) => {
-    if (a.isFeaturedDiscovery === b.isFeaturedDiscovery) {
-      return new Date(a.endAt).getTime() - new Date(b.endAt).getTime();
+  const horizonOptions = useMemo(() => {
+    if (activeVertical !== "crypto") return [];
+    const hCounts = countByHorizon(baseCryptoMarkets);
+    const opts: { id: CryptoHorizonId; label: string; count: number }[] = [
+      { id: "all", label: "All", count: baseCryptoMarkets.length },
+    ];
+    for (const { id, label } of HORIZON_META) {
+      const c = hCounts[id];
+      if (c > 0) opts.push({ id, label, count: c });
     }
-    return a.isFeaturedDiscovery ? -1 : 1;
-  });
-  const trendingMarkets = [...(filteredMarkets.length > 0 ? filteredMarkets : discoveryMarkets)]
-    .sort((a, b) => b.yesPoolValue + b.noPoolValue - (a.yesPoolValue + a.noPoolValue))
-    .slice(0, 7);
+    return opts;
+  }, [activeVertical, baseCryptoMarkets]);
+
+  const assetOptions = useMemo(() => {
+    if (activeVertical !== "crypto") return [];
+    const a = countByAsset(baseCryptoMarkets);
+    return [
+      { id: "all" as const, label: "All", count: baseCryptoMarkets.length },
+      { id: "BTC" as const, label: "BTC", count: a.BTC },
+      { id: "ETH" as const, label: "ETH", count: a.ETH },
+      { id: "SOL" as const, label: "SOL", count: a.SOL },
+    ];
+  }, [activeVertical, baseCryptoMarkets]);
+
+  let filteredMarkets: DiscoveryMarket[] =
+    activeVertical === "trending"
+      ? [...baseCryptoMarkets]
+      : discoveryMarkets.filter((market) => market.discoveryVertical === activeVertical);
+
+  if (activeVertical === "crypto") {
+    if (cryptoAssetFilter !== "all") {
+      filteredMarkets = filteredMarkets.filter((m) => m.assetSymbol === cryptoAssetFilter);
+    }
+    if (cryptoHorizon !== "all") {
+      filteredMarkets = filteredMarkets.filter((m) => marketMatchesHorizon(m, cryptoHorizon));
+    }
+  }
+
+  if (activeVertical === "trending") {
+    filteredMarkets = [...filteredMarkets].sort(
+      (a, b) => b.yesPoolValue + b.noPoolValue - (a.yesPoolValue + a.noPoolValue),
+    );
+  } else {
+    filteredMarkets = [...filteredMarkets].sort((a, b) => {
+      if (a.isFeaturedDiscovery === b.isFeaturedDiscovery) {
+        return new Date(a.endAt).getTime() - new Date(b.endAt).getTime();
+      }
+      return a.isFeaturedDiscovery ? -1 : 1;
+    });
+  }
+
+  const heroMarket =
+    activeVertical === "trending" && filteredMarkets.length > 0 ? filteredMarkets[0] : null;
+  const gridMarkets =
+    activeVertical === "trending" && heroMarket && filteredMarkets.length > 1
+      ? filteredMarkets.filter((m) => m.id !== heroMarket.id)
+      : filteredMarkets;
+
   const openMarket = (market: DiscoveryMarket) => {
     navigate(`/app/market/${market.id}`, { state: { market: market as Market } });
   };
@@ -1166,47 +1344,116 @@ const MarketsAll = () => {
     navigate(UPDOWN_CRYPTO_HREF);
   };
 
+  const showEmpty =
+    gridMarkets.length === 0 && !(activeVertical === "trending" && heroMarket);
+
+  const gridClass =
+    "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-2 lg:gap-6 xl:grid-cols-3 xl:gap-5";
+
+  const marketCardProps = (market: DiscoveryMarket) => ({
+    market,
+    variant: "discover" as const,
+    navigationState: { market: market as Market },
+  });
+
   return (
     <div className="min-h-screen overflow-x-clip bg-background text-foreground">
       <Header
         discoveryNav={{
-          tabs: TABS,
-          activeTab,
-          onTabChange: (tab) => setActiveTab(tab as DiscoveryTab),
-          assetFilter,
-          onAssetFilterChange: (value) => setAssetFilter(value as AssetFilter),
+          verticals: DISCOVERY_VERTICALS,
+          activeVerticalId: activeVertical,
+          onVerticalChange: setActiveVertical,
         }}
       />
 
       <main className="mx-auto max-w-[1440px] px-5 pb-20 pt-10 lg:px-10 lg:pt-12">
-        <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
-          <section className="min-w-0 flex-1">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-2 lg:gap-6 xl:grid-cols-3 xl:gap-5">
-              {filteredMarkets.map((market) => (
-                <div key={market.id} className="h-full min-h-0">
-                  <MarketCard market={market} href={UPDOWN_CRYPTO_HREF} />
-                </div>
-              ))}
+        {activeVertical === "trending" ? (
+          <div
+            className="flex flex-col gap-8 xl:grid xl:grid-cols-[1fr_minmax(260px,320px)] xl:items-start xl:gap-10"
+            data-testid="discover-layout-trending"
+          >
+            <div className="min-w-0">
+              {heroMarket ? (
+                <DiscoverFeaturedHero
+                  market={heroMarket}
+                  eyebrow={heroMarket.heroTag || heroMarket.category}
+                  countdownLabel={heroMarket.countdownLabel}
+                  onOpen={() => openMarket(heroMarket)}
+                />
+              ) : null}
+              <h2 className="mt-8 text-lg font-semibold tracking-tight text-foreground">All markets</h2>
+              <div className={cn("mt-4", gridClass)}>
+                {gridMarkets.map((market) => (
+                  <div key={market.id} className="h-full min-h-0">
+                    <MarketCard {...marketCardProps(market)} />
+                  </div>
+                ))}
+              </div>
             </div>
-          </section>
-
-          <div className="shrink-0 lg:w-[min(100%,20rem)]">
-            <DiscoverSidebar
-              trendingMarkets={trendingMarkets}
-              onOpenUpDown={openUpDownMarket}
-              onOpen={openMarket}
-            />
+            <div className="min-w-0 shrink-0">
+              <DiscoverRightRail
+                trendingMarkets={trendingRailMarkets.slice(0, 7)}
+                onOpenUpDown={openUpDownMarket}
+                onOpen={openMarket}
+              />
+            </div>
           </div>
-        </div>
+        ) : activeVertical === "crypto" ? (
+          <div className="flex flex-col gap-6 lg:flex-row lg:gap-10" data-testid="discover-layout-crypto">
+            <DiscoverLeftNav
+              assetOptions={assetOptions}
+              horizonOptions={horizonOptions}
+              activeAsset={cryptoAssetFilter}
+              activeHorizon={cryptoHorizon}
+              onAssetChange={setCryptoAssetFilter}
+              onHorizonChange={setCryptoHorizon}
+            />
+            <div className="min-w-0 flex-1">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">Crypto</h1>
+                <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label="Crypto product links">
+                  <span className="font-medium text-foreground">All</span>
+                  <Link
+                    to={UPDOWN_CRYPTO_HREF}
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Up vs Down
+                  </Link>
+                  <Link
+                    to="/app/markets/abovebelow/crypto"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Above or Below
+                  </Link>
+                </nav>
+              </div>
+              <div className={gridClass}>
+                {gridMarkets.map((market) => (
+                  <div key={market.id} className="h-full min-h-0">
+                    <MarketCard {...marketCardProps(market)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className={gridClass}>
+            {gridMarkets.map((market) => (
+              <div key={market.id} className="h-full min-h-0">
+                <MarketCard {...marketCardProps(market)} />
+              </div>
+            ))}
+          </div>
+        )}
 
-        {filteredMarkets.length === 0 && (
+        {showEmpty ? (
           <section className="mt-8 rounded-lg border border-dashed border-border bg-muted/20 px-6 py-10 text-center">
             <h2 className="text-lg font-semibold text-foreground">No markets match</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Try a different time tab or set the header asset filter to All assets.
+              Try another category in the strip above — markets will appear here as they are listed.
             </p>
           </section>
-        )}
+        ) : null}
       </main>
 
       <Footer />

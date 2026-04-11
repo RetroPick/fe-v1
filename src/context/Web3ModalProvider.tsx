@@ -1,6 +1,6 @@
-import { createAppKit } from '@reown/appkit/react'
+import { createAppKit, modal } from '@reown/appkit/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { WagmiProvider } from 'wagmi'
 import { customFuji, networks, projectId, wagmiAdapter } from '../config'
 
@@ -61,6 +61,14 @@ function initAppKit() {
 initAppKit()
 
 export function Web3ModalProvider({ children, cookies }: { children: ReactNode; cookies?: string }) {
+    /**
+     * Pre-warm AppKit before any auth / social action. Google sign-in must open a popup synchronously
+     * from the click handler; awaiting inside that handler breaks the user-gesture chain.
+     */
+    useEffect(() => {
+        void modal?.ready().catch(() => undefined)
+    }, [])
+
     return (
         <WagmiProvider config={wagmiAdapter.wagmiConfig as typeof wagmiAdapter.wagmiConfig} reconnectOnMount={false}>
             <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
