@@ -1399,7 +1399,7 @@ const MarketsAll = ({ initialVertical = "crypto" }: MarketsAllProps = {}) => {
             </div>
           </div>
         ) : activeVertical === "crypto" ? (
-          <div className="flex flex-col gap-6 lg:flex-row lg:gap-10" data-testid="discover-layout-crypto">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10" data-testid="discover-layout-crypto">
             <DiscoverLeftNav
               assetOptions={assetOptions}
               horizonOptions={horizonOptions}

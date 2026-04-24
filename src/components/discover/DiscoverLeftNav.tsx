@@ -73,7 +73,7 @@ export default function DiscoverLeftNav({
       {/* Desktop: sticky left rail */}
       <nav
         data-testid="discover-crypto-nav-desktop"
-        className="hidden w-[min(100%,14rem)] shrink-0 flex-col gap-6 lg:flex lg:sticky lg:top-28"
+        className="hidden w-[min(100%,14rem)] shrink-0 flex-col gap-6 lg:flex lg:self-start lg:sticky lg:top-28 lg:max-h-[calc(100vh-7.5rem)] lg:overflow-y-auto"
         aria-label="Crypto market filters"
       >
         <div>

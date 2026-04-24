@@ -37,9 +37,7 @@ function getChartColors() {
   return {
     isDark,
     background: `hsl(${styles.getPropertyValue("--background").trim()})`,
-    surface: isDark
-      ? `hsl(${styles.getPropertyValue("--background").trim()})`
-      : `hsl(${styles.getPropertyValue("--card").trim()})`,
+    surface: `hsl(${styles.getPropertyValue("--background").trim()})`,
     foreground: `hsl(${styles.getPropertyValue("--foreground").trim()})`,
     muted: `hsl(${mutedToken})`,
     border: `hsl(${borderToken})`,
@@ -47,9 +45,6 @@ function getChartColors() {
     cyan: `hsl(${styles.getPropertyValue("--accent-cyan").trim()})`,
     up: isDark ? "#22c55e" : "#16a34a",
     down: isDark ? "#ef4444" : "#dc2626",
-    shadow: isDark
-      ? "0 28px 80px -44px rgba(2,6,23,0.82)"
-      : "0 24px 64px -40px rgba(15,23,42,0.18)",
   };
 }
 
@@ -64,12 +59,6 @@ export function TradingChart({
 }: TradingChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-  const current = candles[candles.length - 1];
-  const currentClose = livePriceUsd ?? current?.close ?? 0;
-  const previousClose = candles[candles.length - 2]?.close ?? current?.open ?? currentClose;
-  const change = currentClose - previousClose;
-  const changePct = previousClose ? (change / previousClose) * 100 : 0;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -115,14 +104,11 @@ export function TradingChart({
 
       wrapper.style.backgroundColor = colors.surface;
       wrapper.style.color = colors.foreground;
-      wrapper.style.borderColor = colors.border;
-      wrapper.style.boxShadow = colors.shadow;
     };
 
-    const chartPaneHeight = Math.max(height - 64, 120);
     const chart = createChart(container, {
       autoSize: true,
-      height: chartPaneHeight,
+      height: Math.max(height, 120),
       layout: {
         background: { type: ColorType.Solid, color: "#ffffff" },
         textColor: "#64748b",
@@ -206,21 +192,10 @@ export function TradingChart({
   return (
     <div
       ref={wrapperRef}
-      className="overflow-hidden rounded-[28px] border border-slate-800 text-slate-100 shadow-[0_28px_80px_-44px_rgba(2,6,23,0.82)]"
+      className="overflow-hidden text-slate-100"
       style={{ height }}
     >
-      <div className="border-b px-3 py-2" style={{ borderColor: colors.border }}>
-        <div className="text-xs font-semibold sm:text-sm" style={{ color: colors.foreground }}>{assetName}</div>
-        <div className="mt-0.5 flex flex-nowrap items-center gap-x-2 overflow-x-auto text-[11px] sm:text-xs" style={{ color: colors.muted }}>
-          {pair.replace("/USDT", " / TetherUS")} · {formatInterval(interval)} · Binance
-          {current ? (
-            <span className="ml-2" style={{ color: change >= 0 ? colors.up : colors.down }}>
-              {change >= 0 ? "+" : ""}{formatPrice(change)} ({change >= 0 ? "+" : ""}{changePct.toFixed(2)}%)
-            </span>
-          ) : null}
-        </div>
-      </div>
-      <div ref={containerRef} className="w-full" style={{ height: Math.max(height - 64, 120) }} />
+      <div ref={containerRef} className="w-full" style={{ height: Math.max(height, 120) }} />
     </div>
   );
 }

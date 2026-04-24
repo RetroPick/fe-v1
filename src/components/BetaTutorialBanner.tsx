@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Icon from "./Icon";
 import { cn } from "@/lib/utils";
+import { appDefaultNetwork } from "@/config";
 
 interface BetaTutorialBannerProps {
   /** Compact mode for inline use (e.g. inside cards) */
@@ -10,7 +11,7 @@ interface BetaTutorialBannerProps {
 
 /**
  * Game-tutorial style banner shown on every market view.
- * Directs users: This is beta → Claim faucet on Fuji → Go to Portfolio.
+ * Directs users: This is beta → fund the configured network → Go to Portfolio.
  */
 export default function BetaTutorialBanner({ compact = false, className }: BetaTutorialBannerProps) {
   return (
@@ -33,7 +34,7 @@ export default function BetaTutorialBanner({ compact = false, className }: BetaT
             This is a beta prediction market
           </p>
           <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
-            To trade: Claim faucet on Avalanche Fuji testnet, then deposit to your vault.
+            To trade: fund your wallet on {appDefaultNetwork.name}, then deposit to your vault.
           </p>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useSignTypedData, useAccount } from 'wagmi';
+import { appDefaultNetwork } from '@/config';
 
 export function useYellowSession() {
     const { address } = useAccount();
@@ -15,7 +16,7 @@ export function useYellowSession() {
         const domain = {
             name: 'RetroPick Relayer',
             version: '1',
-            chainId: 43113,
+            chainId: appDefaultNetwork.id,
         };
 
         let types: any = {};

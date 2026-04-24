@@ -128,28 +128,8 @@ function makePseudoAssetForReference(assetClass: AssetClass, meta: { title: stri
 
 function TradingChartLoadingState() {
   return (
-    <div className="flex h-full overflow-hidden rounded-[28px] border border-border bg-card text-card-foreground shadow-[0_24px_64px_-40px_rgba(15,23,42,0.18)] dark:border-slate-800 dark:bg-[#0b0d12] dark:text-slate-100 dark:shadow-[0_28px_80px_-44px_rgba(2,6,23,0.82)]">
-      <div className="flex w-12 flex-col items-center gap-2 border-r border-border bg-secondary/70 px-2 py-3 dark:border-slate-800 dark:bg-[#111318]">
-        {[0, 1, 2, 3, 4, 5].map((item) => (
-          <div key={item} className="h-8 w-8 animate-pulse rounded-md bg-muted dark:bg-slate-700/60" />
-        ))}
-        <div className="mt-auto flex flex-col gap-2">
-          <div className="h-8 w-8 animate-pulse rounded-md bg-muted dark:bg-slate-700/60" />
-          <div className="h-8 w-8 animate-pulse rounded-md bg-muted dark:bg-slate-700/60" />
-        </div>
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3 dark:border-slate-800">
-        <div className="space-y-2">
-          <div className="h-3 w-24 animate-pulse rounded-full bg-muted dark:bg-slate-700/70" />
-          <div className="h-5 w-36 animate-pulse rounded-full bg-muted/80 dark:bg-slate-700/60" />
-        </div>
-        <div className="h-8 w-20 animate-pulse rounded-full bg-muted" />
-      </div>
-      <div className="border-b border-border px-4 py-3 dark:border-slate-800">
-        <div className="h-4 w-2/3 animate-pulse rounded-full bg-muted/80 dark:bg-slate-700/60" />
-      </div>
-      <div className="relative flex-1 overflow-hidden px-4 py-4">
+    <div className="relative flex h-full overflow-hidden bg-background text-card-foreground dark:text-slate-100">
+      <div className="relative flex-1 overflow-hidden px-2 py-2">
         <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.12)_1px,transparent_1px)] [background-position:center] [background-size:20%_25%] dark:opacity-60 dark:[background-image:linear-gradient(to_right,rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.08)_1px,transparent_1px)]" />
         <div className="relative flex h-full items-end gap-2">
           {[0.42, 0.68, 0.5, 0.74, 0.58, 0.8, 0.62, 0.7, 0.54, 0.78, 0.6, 0.72].map((height, index) => (
@@ -158,10 +138,6 @@ function TradingChartLoadingState() {
             </div>
           ))}
         </div>
-      </div>
-      <div className="border-t border-border px-4 py-2 text-xs text-muted-foreground dark:border-slate-800 dark:text-slate-400">
-        Loading chart backfill...
-      </div>
       </div>
     </div>
   );
@@ -352,11 +328,7 @@ export default function PredictionDashboard() {
         }}
       />
 
-      <div className="relative flex-1">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsl(var(--primary)/0.1),transparent_55%)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-5%,hsl(var(--primary)/0.12),transparent_58%)]" />
-        </div>
-
+      <div className="relative flex-1 bg-background">
         <main className="relative mx-auto max-w-[1440px] px-5 pb-16 pt-6 lg:px-10">
           {assetClass !== "crypto" ? (
             <p className="mb-2 text-center text-[11px] text-muted-foreground">
@@ -382,7 +354,7 @@ export default function PredictionDashboard() {
                 ) : referenceLoading ? (
                   <TradingChartLoadingState />
                 ) : referenceResult?.kind === "unavailable" ? (
-                  <div className="flex h-full flex-col justify-center rounded-[28px] border border-border bg-card px-6 py-8 text-sm text-muted-foreground">
+                  <div className="flex h-full flex-col justify-center bg-background px-2 py-8 text-sm text-muted-foreground">
                     <p className="font-medium text-foreground">{referenceResult.message}</p>
                     {referenceResult.reason === "missing_fred_key" ? (
                       <p className="mt-2 font-mono text-xs">
@@ -401,7 +373,7 @@ export default function PredictionDashboard() {
                     formatValue={referenceResult.formatValue}
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center rounded-[28px] border border-border bg-card text-sm text-muted-foreground">
+                  <div className="flex h-full items-center justify-center bg-background text-sm text-muted-foreground">
                     No chart data
                   </div>
                 )}

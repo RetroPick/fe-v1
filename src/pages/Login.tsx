@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAccount, useSwitchChain, useSignTypedData, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 
 // Mocks for local testing - these would be replaced by actual contract ABIs and addresses
-const TEST_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000"; // Replace with real ERC20 Fuji address
+const TEST_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000"; // Replace with real ERC20 address
 const SETTLEMENT_VAULT_ADDRESS = "0x0000000000000000000000000000000000000000"; // Replace with real ChannelSettlement/Vault address
 const TEST_SESSION_ID = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -29,13 +29,14 @@ import Logo from "@/components/Logo";
 import { IDKitWidget, VerificationLevel, ISuccessResult } from '@worldcoin/idkit';
 import { useToast } from "@/components/ui/use-toast";
 import { openAppKitModal } from "@/lib/openAppKitModal";
+import { appDefaultNetwork } from "@/config";
 
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : "Unexpected error";
 
 const Login = () => {
     const { isConnected, address, chain } = useAccount();
     const { switchChain } = useSwitchChain();
-    const fujiChainId = 43113; // Avalanche Fuji Testnet
+    const targetChainId = appDefaultNetwork.id;
     const navigate = useNavigate();
     const { toast } = useToast();
     const [isVerified, setIsVerified] = useState(false);
@@ -45,12 +46,12 @@ const Login = () => {
     const { writeContractAsync: approveAsync, data: approveTxHash } = useWriteContract();
     const { isLoading: isApproving, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({ hash: approveTxHash });
 
-    // If they are connected on exactly Fuji, and verified, push to app
+    // If they are connected on the configured network, and verified, push to app
     useEffect(() => {
-        if (isConnected && chain?.id === fujiChainId && isVerified && isTradingEnabled) {
+        if (isConnected && chain?.id === targetChainId && isVerified && isTradingEnabled) {
             navigate("/app");
         }
-    }, [isConnected, chain?.id, isVerified, isTradingEnabled, navigate]);
+    }, [isConnected, chain?.id, isVerified, isTradingEnabled, navigate, targetChainId]);
 
     useEffect(() => {
         if (isApproveSuccess) {
@@ -78,7 +79,7 @@ const Login = () => {
             const domain = {
                 name: "ShadowPool",
                 version: "1",
-                chainId: 43113, // Fuji
+                chainId: targetChainId,
                 verifyingContract: SETTLEMENT_VAULT_ADDRESS as `0x${string}`,
             } as const;
 
@@ -189,20 +190,20 @@ const Login = () => {
                         </motion.div>
 
                         {/* 2. Add / Switch Network (Only shows if wrong network) */}
-                        {isConnected && chain?.id !== fujiChainId && (
+                        {isConnected && chain?.id !== targetChainId && (
                             <motion.div
                                 initial={{ x: 20, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
                                 transition={{ delay: 0.45 }}
                             >
                                 <Button
-                                    onClick={() => switchChain({ chainId: fujiChainId })}
+                                    onClick={() => switchChain({ chainId: targetChainId })}
                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 h-14 font-semibold tracking-wide transition-all hover:scale-[1.02] hover:shadow-xl active:scale-95"
                                 >
                                     <Icon name="swap_horiz" className="mr-2 text-xl" />
-                                    2. Switch to Avalanche Fuji
+                                    2. Switch to {appDefaultNetwork.name}
                                 </Button>
-                                <p className="text-xs text-center text-slate-400 mt-2">RetroPick runs on Avalanche Fuji Testnet.</p>
+                                <p className="text-xs text-center text-slate-400 mt-2">RetroPick runs on {appDefaultNetwork.name}.</p>
                             </motion.div>
                         )}
 
@@ -222,11 +223,11 @@ const Login = () => {
                                 {({ open }) => (
                                     <Button
                                         onClick={open}
-                                        disabled={!isConnected || chain?.id !== fujiChainId || isVerified}
+                                        disabled={!isConnected || chain?.id !== targetChainId || isVerified}
                                         className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/25 h-14 font-semibold tracking-wide transition-all hover:scale-[1.02] hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
                                     >
                                         <Icon name={isVerified ? "verified_user" : "fingerprint"} className="mr-2 text-xl" />
-                                        {isVerified ? "ID Verified" : (chain?.id !== fujiChainId ? "Verify with World ID (Network Req)" : "Verify with World ID")}
+                                        {isVerified ? "ID Verified" : (chain?.id !== targetChainId ? "Verify with World ID (Network Req)" : "Verify with World ID")}
                                     </Button>
                                 )}
                             </IDKitWidget>

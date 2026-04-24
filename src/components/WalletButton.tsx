@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccount, useDisconnect, useBalance } from "wagmi";
+import { useWalletInfo } from "@reown/appkit/react";
 import {
     Copy,
     LogOut,
@@ -10,7 +12,10 @@ import {
     ChevronRight,
     Globe,
     Check,
-    Gavel
+    Gavel,
+    QrCode,
+    CreditCard,
+    Building2
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -32,14 +37,17 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import { Language } from "@/data/translations";
 import { openAppKitModal } from "@/lib/openAppKitModal";
+import LazyFundWalletDialog from "@/components/wallet/LazyFundWalletDialog";
 
 const WalletButton = () => {
     const { address, isConnected } = useAccount();
     const { disconnect } = useDisconnect();
     const { data: balance } = useBalance({ address });
+    const { walletInfo } = useWalletInfo();
     const { theme, setTheme } = useTheme();
     const { t, language, setLanguage } = useLanguage();
     const { isOnboarded, isWorldIDVerified } = useOnboarding();
+    const [isFundWalletOpen, setIsFundWalletOpen] = useState(false);
     const nativeBalanceFormatted = balance?.formatted
         ? `${Number(balance.formatted).toFixed(2)} ${balance.symbol}`
         : "0.00";
@@ -51,6 +59,26 @@ const WalletButton = () => {
         { code: 'hi', label: 'हिन्दी (Hindi)' },
         { code: 'es', label: 'Español' },
     ];
+
+    useEffect(() => {
+        if (!isConnected || !address) return;
+
+        const isSocialWallet =
+            walletInfo?.type === "social" ||
+            walletInfo?.type === "AUTH" ||
+            walletInfo?.type === "auth" ||
+            walletInfo?.type === "email" ||
+            typeof walletInfo?.social === "string";
+
+        if (!isSocialWallet) return;
+        if (balance?.value !== 0n) return;
+
+        const storageKey = `fund_wallet_prompt_seen_${address}`;
+        if (window.localStorage.getItem(storageKey) === "true") return;
+
+        window.localStorage.setItem(storageKey, "true");
+        setIsFundWalletOpen(true);
+    }, [address, balance?.value, isConnected, walletInfo]);
 
     if (!isConnected) {
         return (
@@ -116,6 +144,29 @@ const WalletButton = () => {
 
                     {/* Main Menu Items */}
                     <div className="p-2 space-y-0.5">
+                        <DropdownMenuItem
+                            onClick={() => setIsFundWalletOpen(true)}
+                            className="cursor-pointer focus:bg-accent/50 rounded-lg py-2.5 px-3"
+                        >
+                            <QrCode className="mr-3 size-4 text-accent-cyan" />
+                            <span className="font-medium">Receive / fund wallet</span>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                            onClick={() => setIsFundWalletOpen(true)}
+                            className="cursor-pointer focus:bg-accent/50 rounded-lg py-2.5 px-3"
+                        >
+                            <CreditCard className="mr-3 size-4 text-emerald-400" />
+                            <span className="font-medium">Buy crypto</span>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                            onClick={() => setIsFundWalletOpen(true)}
+                            className="cursor-pointer focus:bg-accent/50 rounded-lg py-2.5 px-3"
+                        >
+                            <Building2 className="mr-3 size-4 text-blue-400" />
+                            <span className="font-medium">Deposit from exchange</span>
+                        </DropdownMenuItem>
 
                         {isOnboarded && <WorldIDVerifier asDropdownItem />}
 
@@ -210,6 +261,11 @@ const WalletButton = () => {
 
                 </DropdownMenuContent>
             </DropdownMenu>
+            <LazyFundWalletDialog
+                address={address}
+                isOpen={isFundWalletOpen}
+                onOpenChange={setIsFundWalletOpen}
+            />
         </div>
     );
 };

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Icon from "@/components/Icon";
 import { motion, AnimatePresence } from "framer-motion";
+import LazyFundWalletDialog from "@/components/wallet/LazyFundWalletDialog";
 
 interface OnboardingModalProps {
     isOpen: boolean;
@@ -28,6 +29,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete }: OnboardingModalProps) 
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isFundWalletOpen, setIsFundWalletOpen] = useState(false);
 
     // Step 1: Sign Message
     const handleSign = async () => {
@@ -159,21 +161,23 @@ const OnboardingModal = ({ isOpen, onClose, onComplete }: OnboardingModalProps) 
             case 4: // Deposit
                 return (
                     <div className="space-y-6 text-center">
-                        <div className="p-4 bg-white rounded-xl w-32 mx-auto">
-                            {/* Mock QR Code */}
-                            <div className="w-full h-24 bg-black/10 flex items-center justify-center">
-                                <Icon name="qr_code_2" className="text-6xl text-black" />
-                            </div>
-                        </div>
                         <div>
                             <h3 className="text-xl font-bold">Deposit Funds</h3>
                             <p className="text-muted-foreground text-sm mt-1">
-                                Send AVAX to your trading wallet to start.
+                                Open the real wallet funding flow to get a QR code, buy crypto, use
+                                exchange deposit, or claim Fuji faucet funds.
                             </p>
                             <div className="mt-4 p-3 bg-secondary rounded-lg font-mono text-xs break-all border border-border">
                                 {address || "0x..."}
                             </div>
                         </div>
+                        <Button
+                            onClick={() => setIsFundWalletOpen(true)}
+                            variant="outline"
+                            className="w-full h-12 rounded-xl text-base font-semibold"
+                        >
+                            Open Funding Options
+                        </Button>
                         <Button onClick={handleDeposit} className="w-full h-12 rounded-xl text-lg font-bold bg-primary hover:bg-primary/90">
                             I've Deposited / Do Later
                         </Button>
@@ -210,6 +214,12 @@ const OnboardingModal = ({ isOpen, onClose, onComplete }: OnboardingModalProps) 
                         {renderStepContent()}
                     </motion.div>
                 </AnimatePresence>
+
+                <LazyFundWalletDialog
+                    address={address}
+                    isOpen={isFundWalletOpen}
+                    onOpenChange={setIsFundWalletOpen}
+                />
             </DialogContent>
         </Dialog>
     );

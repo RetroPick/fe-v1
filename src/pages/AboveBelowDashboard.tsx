@@ -424,11 +424,7 @@ export default function AboveBelowDashboard() {
         }}
       />
 
-      <div className="relative flex-1">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsl(var(--primary)/0.1),transparent_55%)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-5%,hsl(var(--primary)/0.12),transparent_58%)]" />
-        </div>
-
+      <div className="relative flex-1 bg-background">
         <main className="relative mx-auto max-w-[1440px] px-5 pb-16 pt-6 lg:px-10">
           {assetClass !== "crypto" ? (
             <p className="mb-2 text-center text-[11px] text-muted-foreground">
@@ -440,7 +436,7 @@ export default function AboveBelowDashboard() {
               <div className="h-[280px]">
                 {assetClass === "crypto" ? (
                   detailLoading || !detail || !activeRound ? (
-                    <div className="flex h-full items-center justify-center rounded-[28px] border border-border bg-card text-sm font-medium text-muted-foreground shadow-[0_24px_64px_-40px_rgba(15,23,42,0.18)] dark:border-slate-800 dark:bg-[#0b0d12]">
+                    <div className="flex h-full items-center justify-center bg-background text-sm font-medium text-muted-foreground">
                       Loading threshold market...
                     </div>
                   ) : (
@@ -461,11 +457,11 @@ export default function AboveBelowDashboard() {
                     />
                   )
                 ) : referenceLoading ? (
-                  <div className="flex h-full items-center justify-center rounded-[28px] border border-border bg-card text-sm font-medium text-muted-foreground shadow-[0_24px_64px_-40px_rgba(15,23,42,0.18)] dark:border-slate-800 dark:bg-[#0b0d12]">
+                  <div className="flex h-full items-center justify-center bg-background text-sm font-medium text-muted-foreground">
                     Loading reference series...
                   </div>
                 ) : referenceResult?.kind === "unavailable" ? (
-                  <div className="flex h-full flex-col justify-center rounded-[28px] border border-border bg-card px-6 py-8 text-sm text-muted-foreground">
+                  <div className="flex h-full flex-col justify-center bg-background px-2 py-8 text-sm text-muted-foreground">
                     <p className="font-medium text-foreground">{referenceResult.message}</p>
                     {referenceResult.reason === "missing_fred_key" ? (
                       <p className="mt-2 font-mono text-xs">
@@ -484,7 +480,7 @@ export default function AboveBelowDashboard() {
                     formatValue={referenceResult.formatValue}
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center rounded-[28px] border border-border bg-card text-sm text-muted-foreground">
+                  <div className="flex h-full items-center justify-center bg-background text-sm text-muted-foreground">
                     No chart data
                   </div>
                 )}
